@@ -1,0 +1,72 @@
+
+Specification Document: Notecard Flow Application
+Version: 1.0 Date: May 24, 2024
+
+1.0 Overview
+Notecard Flow is a dynamic, visual knowledge management tool designed to help users capture, organize, and connect ideas. Using a digital canvas, users can create and manipulate virtual notecards, group them into stacks, and draw relationships between them, creating a fluid and interconnected web of information. The system leverages spatial organization, color-coding, and a unique timeline feature to provide multiple dimensions for exploring the knowledge base.
+
+2.0 Core Data Model
+The application is built on two primary data entities: Notecards and Connections.
+2.1 Notecard Entity
+A Notecard is the fundamental unit of information. Each notecard has the following properties:
+
+2.2 Connection Entity
+A Connection represents a directed relationship between two stacks of notecards.
+
+
+3.0 User Interface
+The application interface consists of a fixed sidebar for controls and a dynamic main canvas for interaction.
+3.1 Sidebar
+The sidebar on the left serves as the application's control panel. It includes:
+Card Creation: A button to open a form for creating a new notecard.
+Connection Controls: Buttons to enter "Connect From" and "Connect To" modes for linking stacks.
+Timeline Control: A "Create Timeline" button to toggle the visibility of the timeline view on the canvas.
+Search & Filter:
+A global text search field to filter cards by title or content.
+A tag filter section that dynamically populates with all available tags. Users can select multiple tags to filter cards.
+Canvas Zoom Control: A panel with buttons (+, -), a manual percentage input, and a reset button to control the zoom level of the main canvas. The scroll wheel also works when hovering over this panel.
+Statistics: A display of the total number of notecards.
+3.2 Canvas
+The canvas is the main workspace where all visual elements are rendered and manipulated.
+It displays all individual notecards and stacks at their specified positions.
+It renders directed, named connection lines between stacks.
+It provides the space for all drag-and-drop interactions.
+When activated, it displays the Timeline feature at the bottom.
+
+4.0 Feature Specifications
+4.1 Card & Stack Manipulation
+Card Creation: New cards are created via the sidebar form. They appear on the canvas at a random position with the date field pre-filled to the current day.
+Real-Time Dragging: When a single card is dragged, its visual representation follows the cursor's movement precisely until it is dropped.
+Stacking:
+Creation: Dragging a card and dropping it onto another individual card creates a new stack.
+Adding: Dropping a card onto an existing stack adds it to that group.
+Stack Visualization (Rolodex view): Stacks are rendered with the top card fully visible and the headers of subsequent cards staggered behind it. A visual boundary box groups the elements.
+Stack Interaction:
+Scrolling: Using the mouse scroll wheel while hovering over a stack cycles through the cards, bringing the next or previous card to the front with a smooth animation.
+Dragging: Entire stacks can be moved by dragging the boundary box or the top card.
+4.2 Connecting Stacks
+Users can enter a connection mode from the sidebar.
+First, click a source stack ("Connect From").
+Then, click a target stack ("Connect To").
+A directed line is drawn between the centers of the two stacks.
+Connections can be named and deleted by clicking on their name label.
+4.3 Filtering and Data-Driven Views
+Focus & Filter: When a user clicks to focus on a card that has a key, the system automatically filters all downstream connected stacks to show only cards that share the same key. This allows for powerful, context-sensitive data exploration.
+Search & Tagging: Cards on the canvas and in the timeline are filtered in real-time based on the search term and selected tags.
+4.4 Timeline Feature
+Activation: Toggled by the "Create Timeline" button in the sidebar.
+Display: A horizontal bar appears at the bottom of the canvas, spanning its width. It represents the date range of all currently filtered cards.
+Card Representation:
+Each card with a valid date is represented by an icon on the timeline, positioned chronologically.
+If multiple cards share the same date, they are represented by a single group icon.
+Interaction:
+Hovering:
+Hovering over a multi-card icon displays a tooltip listing all associated card titles.
+Hovering over a card title in the list highlights both the card on the canvas and its connection line to the timeline.
+Clicking: Clicking a timeline icon (or a title in a list) scrolls the corresponding card to the front of its stack (if applicable) and briefly highlights it with a yellow glow for visual feedback.
+Visual Cues:
+Connection Lines: A line is drawn from each timeline icon to its corresponding card on the canvas.
+Weekly Markers: Subtle vertical dashes mark the start of each week (Monday) on the timeline for better temporal orientation.
+a minute ago
+
+ 
