@@ -14,6 +14,10 @@ The architecture consists of two main processes:
 1.  **Main Process:** (`electron/main.ts`) A Node.js environment responsible for creating and managing the application window and other OS-level interactions.
 2.  **Renderer Process:** (`src/index.tsx`) The user interface, built with React, which runs in the Electron browser window.
 
+Key features implemented include:
+*   **Card and Stack Management:** Creation of cards and stacks, drag-and-drop stacking, "Rolodex" view for stacks, and mouse wheel scrolling through stack cards.
+*   **Drag-and-Drop Connections:** Intuitive creation of directed connections between stacks by dragging a handle from one stack to another.
+
 ## Building and Running
 
 ### Prerequisites

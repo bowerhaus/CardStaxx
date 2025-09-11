@@ -36,6 +36,17 @@ function App() {
     setStacks([...stacks, newStack]);
   };
 
+  const handleStackDragMove = (id: string, x: number, y: number) => {
+    setStacks(
+      stacks.map((stack) => {
+        if (stack.id === id) {
+          return { ...stack, x, y };
+        }
+        return stack;
+      })
+    );
+  };
+
   const handleStackDragEnd = (draggedStackId: string, x: number, y: number) => {
     const draggedStack = stacks.find((s) => s.id === draggedStackId);
     if (!draggedStack) return;
@@ -107,9 +118,7 @@ function App() {
     console.log('Dropped at:', { endX, endY });
     if (currentConnection) {
       console.log('From Stack ID:', currentConnection.fromStackId);
-      // Find the target stack based on endX, endY
       const targetStack = stacks.find(stack => {
-        // Exclude the source stack itself from being a target
         if (stack.id === currentConnection.fromStackId) {
           console.log('Skipping source stack:', stack.id);
           return false;
@@ -153,6 +162,7 @@ function App() {
         isConnecting={isConnecting}
         currentConnection={currentConnection}
         onStackDragEnd={handleStackDragEnd}
+        onStackDragMove={handleStackDragMove} // Added
         onStackWheel={handleStackWheel}
         onConnectionDragMove={handleConnectionDragMove}
         onConnectionDragEnd={handleConnectionDragEnd}

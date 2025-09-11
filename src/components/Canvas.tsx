@@ -15,6 +15,7 @@ interface CanvasProps {
   isConnecting: boolean;
   currentConnection: { fromStackId: string; toX: number; toY: number } | null;
   onStackDragEnd: (id: string, x: number, y: number) => void;
+  onStackDragMove: (id: string, x: number, y: number) => void; // Added
   onStackWheel: (id: string, deltaY: number) => void;
   onConnectionDragStart: (fromStackId: string, startX: number, startY: number) => void;
   onConnectionDragMove: (currentX: number, currentY: number) => void;
@@ -27,6 +28,7 @@ const Canvas = ({
   isConnecting,
   currentConnection,
   onStackDragEnd,
+  onStackDragMove, // Added
   onStackWheel,
   onConnectionDragStart,
   onConnectionDragMove,
@@ -61,6 +63,7 @@ const Canvas = ({
               key={stack.id}
               stack={stack}
               onDragEnd={onStackDragEnd}
+              onDragMove={onStackDragMove} // Added
               onWheel={onStackWheel}
               onClick={() => {}} // onClick is no longer used for connections
             />
@@ -84,9 +87,10 @@ const Canvas = ({
               <Line
                 key={connection.id}
                 points={[fromX, fromY, toX, toY]}
-                stroke="blue"
-                strokeWidth={2}
-                tension={0}
+                stroke="grey" // Changed to grey
+                strokeWidth={1} // Changed to 1
+                opacity={0.75} // Added opacity
+                tension={0} // Straight line
               />
             );
           })}
@@ -100,9 +104,10 @@ const Canvas = ({
                 currentConnection.toX,
                 currentConnection.toY,
               ]}
-              stroke="red"
-              strokeWidth={2}
-              dash={[10, 5]}
+              stroke="grey" // Changed to grey
+              strokeWidth={1} // Changed to 1
+              dash={[5, 5]} // Changed to dotted
+              opacity={0.75} // Added opacity
             />
           )}
 
@@ -115,10 +120,10 @@ const Canvas = ({
                 key={`handle-${stack.id}`}
                 x={handleX}
                 y={handleY}
-                radius={HANDLE_SIZE}
+                radius={HANDLE_SIZE * 0.75} // 25% smaller
                 fill="red"
-                stroke="black"
-                strokeWidth={1}
+                // stroke="black" // Removed border
+                // strokeWidth={1} // Removed border
                 draggable
                 onDragStart={(e) => {
                   e.target.moveToTop(); // Bring handle to top
@@ -134,6 +139,7 @@ const Canvas = ({
                   e.target.x(handleX);
                   e.target.y(handleY);
                 }}
+                zIndex={100} // Ensure handle is on top
               />
             );
           })}

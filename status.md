@@ -5,10 +5,10 @@ This document tracks the progress of implementing features in the CardStaxx appl
 ## Current Feature: Connecting Stacks
 
 - [x] Update state in `App.tsx`: Add `connectionMode`, `sourceStackId`, and `connections` state variables. Create placeholder handler functions.
-- [ ] Update `Sidebar.tsx`: Hook up the "Connect From" button and visually indicate connection mode.
-- [ ] Update `Canvas.tsx` and `Stack.tsx`: Add the `onClick` handler to stacks.
-- [ ] Implement Connection Logic: Fill in the `handleStackClick` function in `App.tsx` to create connections.
-- [ ] Render the Lines: Add the rendering logic for connections to `Canvas.tsx`.
+- [x] Update `Sidebar.tsx`: Hook up the "Connect From" button and visually indicate connection mode.
+- [x] Update `Canvas.tsx` and `Stack.tsx`: Add the `onClick` handler to stacks.
+- [x] Implement Connection Logic: Fill in the `handleStackClick` function in `App.tsx` to create connections.
+- [x] Render the Lines: Add the rendering logic for connections to `Canvas.tsx`.
 
 ## Completed Features
 
@@ -26,3 +26,8 @@ This document tracks the progress of implementing features in the CardStaxx appl
     -   Implemented "Rolodex" view for stacks (visualizing multiple cards).
     -   Implemented z-index fix for dragging (dragged stack appears on top).
     -   Implemented stack scrolling (mouse wheel cycles cards in a stack).
+-   **Connecting Stacks (Drag-and-Drop):**
+    -   [x] Implemented drag-and-drop connection from a handle on each stack.
+    -   [x] Dynamic line tracks mouse while dragging.
+    -   [x] Connection is made on drop onto a target stack.
+    -   [x] Connection lines appear on top of stacks.

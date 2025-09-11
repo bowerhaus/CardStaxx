@@ -41,7 +41,7 @@ A directed relationship between two stacks of notecards.
 
 ### 5.1. Main Interface
 *   **Sidebar:** A fixed control panel on the left containing:
-    *   Buttons for Card Creation and Connection modes.
+    *   Buttons for Card Creation.
     *   A toggle button for the Timeline view.
     *   Global text search and a tag-based filtering section.
     *   Canvas zoom controls.
@@ -59,7 +59,7 @@ A directed relationship between two stacks of notecards.
     *   Entire stacks can be moved by dragging them.
 
 ### 5.3. Connections
-*   Users can create a named, directed line between two stacks using the "Connect From" and "Connect To" modes.
+*   **Drag-and-Drop Connection:** Users can create a directed connection by dragging a connection handle (a small visual indicator) from a source stack and dropping it onto a target stack. A dynamic line will track the mouse during the drag operation.
 
 ### 5.4. Search & Filtering
 *   **Global Search/Filter:** The canvas view updates in real-time as the user types in the search bar or selects tags.

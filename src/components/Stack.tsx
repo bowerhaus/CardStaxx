@@ -1,5 +1,5 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva'; // Removed Circle
+import { Group, Rect } from 'react-konva';
 import Konva from 'konva';
 import Notecard from './Notecard';
 import { StackData } from '../types';
@@ -7,23 +7,26 @@ import { StackData } from '../types';
 interface StackProps {
   stack: StackData;
   onDragEnd: (id: string, x: number, y: number) => void;
+  onDragMove: (id: string, x: number, y: number) => void; // Added
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
-  // Removed connection-related props
 }
 
 const CARD_WIDTH = 200;
 const CARD_HEIGHT = 150;
 const HEADER_OFFSET = 40;
-// Removed HANDLE_SIZE
 
-const Stack = ({ stack, onDragEnd, onWheel, onClick }: StackProps) => { // Removed connection-related props
+const Stack = ({ stack, onDragEnd, onDragMove, onWheel, onClick }: StackProps) => { // Added onDragMove
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     e.target.moveToTop();
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
     onDragEnd(stack.id, e.target.x(), e.target.y());
+  };
+
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => { // Added
+    onDragMove(stack.id, e.target.x(), e.target.y());
   };
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
@@ -34,8 +37,6 @@ const Stack = ({ stack, onDragEnd, onWheel, onClick }: StackProps) => { // Remov
   const handleClick = () => {
     onClick(stack.id);
   };
-
-  // Removed handleHandleDragStart and handleHandleDragEnd
 
   if (!stack.cards || stack.cards.length === 0) {
     return null; // Don't render anything if the stack is empty
@@ -49,6 +50,7 @@ const Stack = ({ stack, onDragEnd, onWheel, onClick }: StackProps) => { // Remov
       y={stack.y}
       draggable
       onDragStart={handleDragStart}
+      onDragMove={handleDragMove} // Added
       onDragEnd={handleDragEnd}
       onWheel={handleWheel}
       onClick={handleClick}
@@ -70,8 +72,6 @@ const Stack = ({ stack, onDragEnd, onWheel, onClick }: StackProps) => { // Remov
           <Notecard card={card} />
         </Group>
       ))}
-
-      {/* Connection Handle removed */}
     </Group>
   );
 };
