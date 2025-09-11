@@ -10,3 +10,9 @@ export interface StackData {
   y: number;
   cards: NotecardData[];
 }
+
+export interface ConnectionData {
+  id: string;
+  from: string; // stackId
+  to: string;   // stackId
+}
