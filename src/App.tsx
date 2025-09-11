@@ -79,10 +79,40 @@ function App() {
     });
 
     if (targetStack) {
+      // Get dimensions for size adoption logic
+      const targetTopCard = targetStack.cards[0];
+      const targetWidth = targetTopCard?.width || CARD_WIDTH;
+      const targetHeight = targetTopCard?.height || CARD_HEIGHT;
+      
+      const draggedTopCard = draggedStack.cards[0];
+      const draggedWidth = draggedTopCard?.width || CARD_WIDTH;
+      const draggedHeight = draggedTopCard?.height || CARD_HEIGHT;
+      
+      // Determine final size: use larger dimensions
+      const finalWidth = Math.max(targetWidth, draggedWidth);
+      const finalHeight = Math.max(targetHeight, draggedHeight);
+      
       const newStacks = stacks
         .map(s => {
           if (s.id === targetStack.id) {
-            return { ...s, cards: [...s.cards, ...draggedStack.cards] };
+            // Resize all cards in target stack to match final size
+            const resizedTargetCards = s.cards.map(card => ({
+              ...card,
+              width: finalWidth,
+              height: finalHeight
+            }));
+            
+            // Resize dragged cards to match final size
+            const resizedDraggedCards = draggedStack.cards.map(card => ({
+              ...card,
+              width: finalWidth,
+              height: finalHeight
+            }));
+            
+            return { 
+              ...s, 
+              cards: [...resizedTargetCards, ...resizedDraggedCards] 
+            };
           }
           return s;
         })

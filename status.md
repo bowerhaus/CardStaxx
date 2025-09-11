@@ -31,3 +31,11 @@ This document tracks the progress of implementing features in the CardStaxx appl
     -   [x] Dynamic line tracks mouse while dragging.
     -   [x] Connection is made on drop onto a target stack.
     -   [x] Connection lines appear on top of stacks.
+    -   [x] Fixed connection positioning to start from stack center (not bottom card center).
+-   **Card Resizing:**
+    -   [x] Implemented resize handles on cards for dynamic width/height adjustment.
+    -   [x] Added size adoption logic when dropping cards onto stacks.
+    -   [x] Stack resizing: larger cards resize the target stack, smaller cards adopt stack size.
+-   **In-place Text Editing:**
+    -   [x] Double-click to edit card titles and content with overlay text inputs.
+    -   [x] Text editing with proper positioning and styling alignment.

@@ -24,6 +24,8 @@ The fundamental unit of information.
 *   `id`: Unique identifier.
 *   `title`: The title of the card.
 *   `content`: The body of the note (text, lists).
+*   `width`: Optional width (defaults to 200px if not specified).
+*   `height`: Optional height (defaults to 150px if not specified).
 *   `tags`: An array of string tags for filtering.
 *   `key`: An optional string for the "Focus & Filter" feature.
 *   `date`: The creation date of the card.
@@ -50,16 +52,20 @@ A directed relationship between two stacks of notecards.
 
 ### 5.2. Card & Stack Management
 *   **Card Creation:** New cards are created via the sidebar and appear on the canvas. The `date` field defaults to the current day.
+*   **Card Resizing:** Individual cards can be resized using drag handles, with width and height stored per card.
 *   **Stacking:**
     *   **Creation:** Dragging and dropping a card onto another card creates a new stack.
     *   **Adding:** Dropping a card onto an existing stack adds it to that stack.
-*   **Stack Visualization (Rolodex View):** Stacks display the top card fully, with the headers of subsequent cards visible behind it.
+    *   **Size Adoption:** When cards are combined into stacks, all cards adopt the largest dimensions present (width and height are unified).
+*   **Stack Visualization (Rolodex View):** Stacks display the top card fully, with the headers of subsequent cards visible behind it. Stack dimensions are determined by the top card's size.
 *   **Stack Interaction:**
     *   The mouse scroll wheel cycles through cards in a stack.
     *   Entire stacks can be moved by dragging them.
+    *   Double-click cards to edit title and content with in-place text overlays.
 
 ### 5.3. Connections
 *   **Drag-and-Drop Connection:** Users can create a directed connection by dragging a connection handle (a small visual indicator) from a source stack and dropping it onto a target stack. A dynamic line will track the mouse during the drag operation.
+*   **Connection Positioning:** Connection lines start and end at the center of each stack (accounting for all cards in the stack), providing consistent visual connections regardless of stack size.
 
 ### 5.4. Search & Filtering
 *   **Global Search/Filter:** The canvas view updates in real-time as the user types in the search bar or selects tags.

@@ -88,18 +88,18 @@ const Canvas = React.memo(({
 
             if (!fromStack || !toStack) return null;
 
-            // Use dynamic card dimensions for connection points
+            // Use dynamic card dimensions for connection points (stack center)
             const fromTopCard = fromStack.cards[0];
             const fromWidth = fromTopCard?.width || CARD_WIDTH;
-            const fromHeight = fromTopCard?.height || CARD_HEIGHT;
+            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
             const fromX = fromStack.x + fromWidth / 2;
-            const fromY = fromStack.y + fromHeight / 2;
+            const fromY = fromStack.y + fromStackHeight / 2;
 
             const toTopCard = toStack.cards[0];
             const toWidth = toTopCard?.width || CARD_WIDTH;
-            const toHeight = toTopCard?.height || CARD_HEIGHT;
+            const toStackHeight = (toTopCard?.height || CARD_HEIGHT) + (toStack.cards.length - 1) * HEADER_OFFSET;
             const toX = toStack.x + toWidth / 2;
-            const toY = toStack.y + toHeight / 2;
+            const toY = toStack.y + toStackHeight / 2;
 
             return (
               <Line
@@ -120,13 +120,13 @@ const Canvas = React.memo(({
             
             const fromTopCard = fromStack.cards[0];
             const fromWidth = fromTopCard?.width || CARD_WIDTH;
-            const fromHeight = fromTopCard?.height || CARD_HEIGHT;
+            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
             
             return (
               <Line
                 points={[
                   fromStack.x + fromWidth / 2,
-                  fromStack.y + fromHeight / 2,
+                  fromStack.y + fromStackHeight / 2,
                   currentConnection.toX,
                   currentConnection.toY,
                 ]}
