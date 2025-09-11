@@ -20,20 +20,25 @@ interface CanvasProps {
   onConnectionDragStart: (fromStackId: string, startX: number, startY: number) => void;
   onConnectionDragMove: (currentX: number, currentY: number) => void;
   onConnectionDragEnd: (endX: number, endY: number) => void;
+  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void; // Added
+  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void; // Added
 }
 
-const Canvas = ({
+const Canvas = React.memo(({
   stacks,
   connections,
   isConnecting,
   currentConnection,
   onStackDragEnd,
-  onStackDragMove, // Added
+  onStackDragMove,
   onStackWheel,
   onConnectionDragStart,
   onConnectionDragMove,
   onConnectionDragEnd,
+  onUpdateCard,
+  onEditStart,
 }: CanvasProps) => {
+  console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
   const canvasHeight = window.innerHeight;
 
@@ -63,9 +68,11 @@ const Canvas = ({
               key={stack.id}
               stack={stack}
               onDragEnd={onStackDragEnd}
-              onDragMove={onStackDragMove} // Added
+              onDragMove={onStackDragMove}
               onWheel={onStackWheel}
               onClick={() => {}} // onClick is no longer used for connections
+              onUpdateCard={onUpdateCard}
+              onEditStart={onEditStart}
             />
           ))}
         </Layer>
@@ -139,7 +146,7 @@ const Canvas = ({
                   e.target.x(handleX);
                   e.target.y(handleY);
                 }}
-                zIndex={100} // Ensure handle is on top
+                // zIndex={100} // Removed
               />
             );
           })}
@@ -147,6 +154,6 @@ const Canvas = ({
       </Stage>
     </div>
   );
-};
+});
 
 export default Canvas;

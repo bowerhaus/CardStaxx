@@ -7,16 +7,32 @@ import { StackData } from '../types';
 interface StackProps {
   stack: StackData;
   onDragEnd: (id: string, x: number, y: number) => void;
-  onDragMove: (id: string, x: number, y: number) => void; // Added
+  onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
+  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void; // Added
+  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void; // Added
 }
 
 const CARD_WIDTH = 200;
 const CARD_HEIGHT = 150;
 const HEADER_OFFSET = 40;
 
-const Stack = ({ stack, onDragEnd, onDragMove, onWheel, onClick }: StackProps) => { // Added onDragMove
+const Stack = React.memo(({
+  stack,
+  onDragEnd,
+  onDragMove,
+  onWheel,
+  onClick,
+  onUpdateCard,
+  onEditStart,
+}: StackProps) => {
+  console.log('Stack received onEditStart:', onEditStart);
+
+  const handleNotecardEditStart = (field: 'title' | 'content', konvaNode: Konva.Node) => {
+    onEditStart(stack.cards[0].id, field, konvaNode); // Pass the ID of the top card in the stack
+  };
+
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     e.target.moveToTop();
   };
@@ -25,7 +41,7 @@ const Stack = ({ stack, onDragEnd, onDragMove, onWheel, onClick }: StackProps) =
     onDragEnd(stack.id, e.target.x(), e.target.y());
   };
 
-  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => { // Added
+  const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
     onDragMove(stack.id, e.target.x(), e.target.y());
   };
 
@@ -50,7 +66,7 @@ const Stack = ({ stack, onDragEnd, onDragMove, onWheel, onClick }: StackProps) =
       y={stack.y}
       draggable
       onDragStart={handleDragStart}
-      onDragMove={handleDragMove} // Added
+      onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
       onWheel={handleWheel}
       onClick={handleClick}
@@ -69,11 +85,11 @@ const Stack = ({ stack, onDragEnd, onDragMove, onWheel, onClick }: StackProps) =
       />
       {stack.cards.map((card, index) => (
         <Group key={card.id} y={index * HEADER_OFFSET}>
-          <Notecard card={card} />
+          <Notecard card={card} onEditStart={handleNotecardEditStart} />
         </Group>
       ))}
     </Group>
   );
-};
+});
 
 export default Stack;
