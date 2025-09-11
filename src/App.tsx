@@ -190,11 +190,15 @@ function App() {
     if (editingCardId && editingField) {
       const currentCard = stacks.flatMap(s => s.cards).find(c => c.id === editingCardId);
       if (currentCard) {
-        handleUpdateCard(
-          editingCardId,
-          editingField === 'title' ? editingTextValue : currentCard.title,
-          editingField === 'content' ? editingTextValue : currentCard.content
-        );
+        // Only update if the text actually changed
+        const newValue = editingTextValue.trim();
+        if (newValue !== (editingField === 'title' ? currentCard.title : currentCard.content)) {
+          handleUpdateCard(
+            editingCardId,
+            editingField === 'title' ? newValue : currentCard.title,
+            editingField === 'content' ? newValue : currentCard.content
+          );
+        }
       }
     }
     setEditingCardId(null);
@@ -212,24 +216,15 @@ function App() {
     const stageRect = stage.container().getBoundingClientRect();
     const nodeAbsolutePosition = editingKonvaNode.getAbsolutePosition();
 
-    // Adjust for padding within the Konva Text node
-    let offsetX = 0;
-    let offsetY = 0;
-    if (editingField === 'title') {
-      offsetX = TITLE_PADDING;
-      offsetY = TITLE_PADDING;
-    } else if (editingField === 'content') {
-      offsetX = TITLE_PADDING; // Content also starts with TITLE_PADDING from left
-      offsetY = CONTENT_PADDING_TOP;
-    }
-
+    // The Text nodes already have internal padding, so we need to align with that
+    // The padding is already built into the Text node's rendering
     const calculatedPos = {
-      x: stageRect.left + nodeAbsolutePosition.x + offsetX,
-      y: stageRect.top + nodeAbsolutePosition.y + offsetY,
-      width: editingKonvaNode.width() - offsetX * 2,
-      height: editingKonvaNode.height() - offsetY * 2,
+      x: stageRect.left + nodeAbsolutePosition.x + TITLE_PADDING,
+      y: stageRect.top + nodeAbsolutePosition.y + (editingField === 'title' ? TITLE_PADDING : TITLE_PADDING),
+      width: editingKonvaNode.width() - TITLE_PADDING * 2,
+      height: editingField === 'title' ? 20 : editingKonvaNode.height() - TITLE_PADDING * 2,
     };
-    console.log('Calculated Overlay Position:', calculatedPos);
+    console.log('Calculated Overlay Position:', calculatedPos, 'Field:', editingField);
     return calculatedPos;
   };
 

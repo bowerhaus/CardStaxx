@@ -47,6 +47,12 @@ const Notecard = ({ card, onEditStart }: NotecardProps) => {
         width={CARD_WIDTH - TITLE_PADDING * 2}
         height={20} // Match approximate height of title text
         fill="rgba(0,0,0,0)" // Transparent fill
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'text';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
         onDblClick={() => {
           console.log('Title hit rect double-clicked!');
           titleTextRef.current && onEditStart('title', titleTextRef.current);
@@ -58,8 +64,24 @@ const Notecard = ({ card, onEditStart }: NotecardProps) => {
         fontSize={12}
         padding={CONTENT_PADDING_TOP}
         width={CARD_WIDTH}
-        height={CARD_HEIGHT - CONTENT_PADDING_TOP - TITLE_PADDING} // Approximate height
+        height={CARD_HEIGHT - CONTENT_PADDING_TOP - TITLE_PADDING}
+        listening={false} // Disable listening on Text to prevent default selection
+      />
+      {/* Transparent Rect for content hit detection */}
+      <Rect
+        x={TITLE_PADDING}
+        y={CONTENT_PADDING_TOP}
+        width={CARD_WIDTH - TITLE_PADDING * 2}
+        height={CARD_HEIGHT - CONTENT_PADDING_TOP - TITLE_PADDING}
+        fill="rgba(0,0,0,0)" // Transparent fill
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'text';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
         onDblClick={() => {
+          console.log('Content hit rect double-clicked!');
           contentTextRef.current && onEditStart('content', contentTextRef.current);
         }}
       />
