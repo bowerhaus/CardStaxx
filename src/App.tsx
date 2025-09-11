@@ -18,8 +18,8 @@ function App() {
     },
   ]);
   const [connections, setConnections] = useState<ConnectionData[]>([]);
-  const [connectionMode, setConnectionMode] = useState(false);
-  const [sourceStackId, setSourceStackId] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [currentConnection, setCurrentConnection] = useState<{ fromStackId: string; toX: number; toY: number } | null>(null);
 
   const handleCreateCard = () => {
     const newCard: NotecardData = {
@@ -91,38 +91,72 @@ function App() {
     );
   };
 
-  const handleStackClick = (stackId: string) => {
-    if (!connectionMode) return;
+  const handleConnectionDragStart = (fromStackId: string, startX: number, startY: number) => {
+    setIsConnecting(true);
+    setCurrentConnection({ fromStackId, toX: startX, toY: startY });
+  };
 
-    if (!sourceStackId) {
-      setSourceStackId(stackId);
-    } else {
-      const newConnection: ConnectionData = {
-        id: `conn-${Date.now()}`,
-        from: sourceStackId,
-        to: stackId,
-      };
-      setConnections([...connections, newConnection]);
-      setSourceStackId(null);
-      setConnectionMode(false);
+  const handleConnectionDragMove = (currentX: number, currentY: number) => {
+    if (currentConnection) {
+      setCurrentConnection({ ...currentConnection, toX: currentX, toY: currentY });
     }
+  };
+
+  const handleConnectionDragEnd = (endX: number, endY: number) => {
+    console.log('--- handleConnectionDragEnd ---');
+    console.log('Dropped at:', { endX, endY });
+    if (currentConnection) {
+      console.log('From Stack ID:', currentConnection.fromStackId);
+      // Find the target stack based on endX, endY
+      const targetStack = stacks.find(stack => {
+        // Exclude the source stack itself from being a target
+        if (stack.id === currentConnection.fromStackId) {
+          console.log('Skipping source stack:', stack.id);
+          return false;
+        }
+
+        const stackHeight = CARD_HEIGHT + (stack.cards.length - 1) * 40; // Assuming HEADER_OFFSET is 40
+        const collision = (
+          endX > stack.x &&
+          endX < stack.x + CARD_WIDTH &&
+          endY > stack.y &&
+          endY < stack.y + stackHeight
+        );
+        console.log(`Checking stack ${stack.id} at (${stack.x}, ${stack.y}) with size (${CARD_WIDTH}, ${stackHeight}). Collision: ${collision}`);
+        return collision;
+      });
+
+      if (targetStack) {
+        console.log('Target Stack Found:', targetStack.id);
+        const newConnection: ConnectionData = {
+          id: `conn-${Date.now()}`,
+          from: currentConnection.fromStackId,
+          to: targetStack.id,
+        };
+        setConnections([...connections, newConnection]);
+        console.log('Connection created:', newConnection);
+      } else {
+        console.log('No target stack found at drop point.');
+      }
+    }
+    setIsConnecting(false);
+    setCurrentConnection(null);
+    console.log('--- End handleConnectionDragEnd ---');
   };
 
   return (
     <div style={{ display: 'flex' }}>
-      <Sidebar
-        onCreateCard={handleCreateCard}
-        onConnectFrom={() => {
-          setConnectionMode(true);
-          setSourceStackId(null);
-        }}
-      />
+      <Sidebar onCreateCard={handleCreateCard} />
       <Canvas
         stacks={stacks}
         connections={connections}
+        isConnecting={isConnecting}
+        currentConnection={currentConnection}
         onStackDragEnd={handleStackDragEnd}
         onStackWheel={handleStackWheel}
-        onStackClick={handleStackClick}
+        onConnectionDragMove={handleConnectionDragMove}
+        onConnectionDragEnd={handleConnectionDragEnd}
+        onConnectionDragStart={handleConnectionDragStart}
       />
     </div>
   );

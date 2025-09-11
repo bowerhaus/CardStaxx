@@ -10,9 +10,7 @@ const Sidebar = ({ onCreateCard }: SidebarProps) => {
       <h2>Knowledge Cards</h2>
       <button onClick={onCreateCard}>+ Create New Card</button>
       <hr />
-      <button>Connect From</button>
-      <button>Connect To</button>
-      <hr />
+      {/* Connection buttons removed */}
       <button>Create Timeline</button>
       <hr />
       <input type="search" placeholder="Search cards..." style={{ width: '100%' }} />
