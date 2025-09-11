@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay'; // Import new component
-import { NotecardData, StackData, ConnectionData } from './types';
+import { NotecardData, StackData, ConnectionData, WorkspaceData } from './types';
 import Konva from 'konva'; // Import Konva for Node type
 
 const CARD_WIDTH = 200;
@@ -25,11 +25,158 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [currentConnection, setCurrentConnection] = useState<{ fromStackId: string; toX: number; toY: number } | null>(null);
 
+  // State for file management
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   // State for card editing
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<'title' | 'content' | null>(null);
   const [editingKonvaNode, setEditingKonvaNode] = useState<Konva.Node | null>(null);
   const [editingTextValue, setEditingTextValue] = useState<string>('');
+
+  // Auto-load last opened file on startup
+  useEffect(() => {
+    const autoLoadLastFile = async () => {
+      try {
+        const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
+        if (!ipcRenderer) return;
+
+        const lastFilePath = await ipcRenderer.invoke('get-last-opened-file');
+        if (lastFilePath) {
+          try {
+            const fileResult = await ipcRenderer.invoke('load-file', lastFilePath);
+            if (fileResult.success && fileResult.data) {
+              const workspaceData: WorkspaceData = JSON.parse(fileResult.data);
+              
+              // Clear default welcome card when loading a workspace
+              setStacks(workspaceData.stacks);
+              setConnections(workspaceData.connections);
+              setCurrentFilePath(lastFilePath);
+              setHasUnsavedChanges(false);
+              
+              console.log('Auto-loaded workspace:', lastFilePath);
+            } else {
+              console.log('Failed to auto-load workspace:', fileResult.error);
+              // Keep the default welcome card if auto-load fails
+            }
+          } catch (error) {
+            console.log('Error parsing workspace file:', error);
+            // Keep the default welcome card if file is corrupted
+          }
+        } else {
+          console.log('No previous workspace to auto-load');
+          // Keep the default welcome card for new users
+        }
+      } catch (error) {
+        console.log('Auto-load not available:', error);
+      }
+    };
+
+    autoLoadLastFile();
+  }, []);
+
+  // Workspace save/load functions
+  const saveWorkspace = async (filePath?: string | null) => {
+    try {
+      // Check if we're in Electron environment
+      const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
+      
+      if (!ipcRenderer) {
+        alert('File operations not available - running in browser mode');
+        return;
+      }
+
+      let targetPath = filePath || undefined;
+      
+      if (!targetPath) {
+        const result = await ipcRenderer.invoke('save-workspace-dialog');
+        if (result.canceled) return;
+        targetPath = result.filePath;
+      }
+
+      if (!targetPath) {
+        alert('No file path specified');
+        return;
+      }
+
+      const workspaceData: WorkspaceData = {
+        version: '1.0',
+        createdAt: new Date().toISOString(),
+        lastModified: new Date().toISOString(),
+        stacks,
+        connections,
+      };
+
+      const result = await ipcRenderer.invoke('save-file', targetPath, JSON.stringify(workspaceData, null, 2));
+      
+      if (result.success) {
+        setCurrentFilePath(targetPath);
+        setHasUnsavedChanges(false);
+        // Record as last opened file
+        await ipcRenderer.invoke('set-last-opened-file', targetPath);
+        alert('Workspace saved successfully!');
+      } else {
+        alert(`Failed to save workspace: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`Error saving workspace: ${error}`);
+    }
+  };
+
+  const loadWorkspace = async () => {
+    try {
+      // Check if we're in Electron environment
+      const { ipcRenderer } = window.require ? window.require('electron') : { ipcRenderer: null };
+      
+      if (!ipcRenderer) {
+        alert('File operations not available - running in browser mode');
+        return;
+      }
+
+      const result = await ipcRenderer.invoke('open-workspace-dialog');
+      if (result.canceled) return;
+
+      const filePath = result.filePaths[0];
+      if (!filePath) {
+        alert('No file selected');
+        return;
+      }
+
+      const fileResult = await ipcRenderer.invoke('load-file', filePath);
+      
+      if (fileResult.success && fileResult.data) {
+        const workspaceData: WorkspaceData = JSON.parse(fileResult.data);
+        
+        setStacks(workspaceData.stacks);
+        setConnections(workspaceData.connections);
+        setCurrentFilePath(filePath);
+        setHasUnsavedChanges(false);
+        
+        // Note: Last opened file is already recorded by the main process load-file handler
+        alert('Workspace loaded successfully!');
+      } else {
+        alert(`Failed to load workspace: ${fileResult.error}`);
+      }
+    } catch (error) {
+      alert(`Error loading workspace: ${error}`);
+    }
+  };
+
+  const newWorkspace = () => {
+    if (hasUnsavedChanges) {
+      const save = confirm('You have unsaved changes. Save before creating a new workspace?');
+      if (save) {
+        saveWorkspace();
+        return;
+      }
+    }
+    
+    setStacks([]);
+    setConnections([]);
+    setCurrentFilePath(null);
+    setHasUnsavedChanges(false);
+  };
 
   const handleCreateCard = () => {
     const newCard: NotecardData = {
@@ -44,6 +191,7 @@ function App() {
       cards: [newCard],
     };
     setStacks([...stacks, newStack]);
+    setHasUnsavedChanges(true);
   };
 
   const handleStackDragMove = (id: string, x: number, y: number) => {
@@ -118,6 +266,7 @@ function App() {
         })
         .filter(s => s.id !== draggedStackId);
       setStacks(newStacks);
+      setHasUnsavedChanges(true);
     } else {
       setStacks(
         stacks.map((stack) => {
@@ -127,6 +276,7 @@ function App() {
           return stack;
         })
       );
+      setHasUnsavedChanges(true);
     }
   };
 
@@ -192,6 +342,7 @@ function App() {
           to: targetStack.id,
         };
         setConnections([...connections, newConnection]);
+        setHasUnsavedChanges(true);
         console.log('Connection created:', newConnection);
       } else {
         console.log('No target stack found at drop point.');
@@ -211,6 +362,7 @@ function App() {
         ),
       }))
     );
+    setHasUnsavedChanges(true);
   };
 
   const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
@@ -222,6 +374,7 @@ function App() {
         ),
       }))
     );
+    setHasUnsavedChanges(true);
   };
 
   const handleEditStart = useCallback((cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => {
@@ -282,7 +435,15 @@ function App() {
 
   return (
     <div style={{ display: 'flex' }}>
-      <Sidebar onCreateCard={handleCreateCard} />
+      <Sidebar 
+        onCreateCard={handleCreateCard}
+        onSave={() => saveWorkspace(currentFilePath)}
+        onSaveAs={() => saveWorkspace()}
+        onLoad={loadWorkspace}
+        onNew={newWorkspace}
+        hasUnsavedChanges={hasUnsavedChanges}
+        currentFilePath={currentFilePath}
+      />
       <Canvas
         stacks={stacks}
         connections={connections}

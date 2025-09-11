@@ -39,3 +39,10 @@ This document tracks the progress of implementing features in the CardStaxx appl
 -   **In-place Text Editing:**
     -   [x] Double-click to edit card titles and content with overlay text inputs.
     -   [x] Text editing with proper positioning and styling alignment.
+-   **Data Persistence:**
+    -   [x] JSON-based workspace save/load functionality with .cardstaxx file format.
+    -   [x] File dialogs for New, Save, Load, and Save As operations.
+    -   [x] Change tracking with visual indicators for unsaved modifications.
+    -   [x] Auto-load of last opened workspace on application startup.
+    -   [x] Robust error handling for missing or corrupted workspace files.
+    -   [x] Settings storage for user preferences and recent file tracking.

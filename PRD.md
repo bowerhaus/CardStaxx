@@ -80,9 +80,17 @@ A directed relationship between two stacks of notecards.
     *   Clicking an icon scrolls the card to the front of its stack and highlights it.
     *   A visual line connects the timeline icon to its corresponding card on the canvas.
 
-### 5.6. Data Persistence (MVP)
-*   The application will be **local-first**.
-*   For the initial MVP, the entire state of the knowledge base (all notecards, connections, positions, etc.) will be saved to a single JSON file. This approach prioritizes simplicity for the first version.
+### 5.6. Data Persistence (Implemented)
+*   The application is **local-first** with full data persistence capabilities.
+*   **File Format**: Workspace data is saved in JSON format with .cardstaxx extension containing:
+    *   Version information and timestamps (created, last modified)
+    *   Complete stack data including card positions and dimensions
+    *   All connection relationships between stacks
+*   **File Operations**: New, Save, Load, and Save As functionality with native file dialogs
+*   **Change Tracking**: Visual indicators show unsaved changes with asterisk (*) notation
+*   **Auto-Resume**: Application automatically loads the last opened workspace on startup
+*   **Error Recovery**: Robust handling of missing, moved, or corrupted workspace files
+*   **Settings Management**: User preferences and recent file history stored in app data directory
 
 ## 6. Future Considerations
 *   **Database Scalability:** For improved performance and scalability, the JSON file storage will be replaced with a more efficient embedded database solution (e.g., SQLite) in a future version.
