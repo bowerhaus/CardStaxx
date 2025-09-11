@@ -2,6 +2,8 @@ export interface NotecardData {
   id: string;
   title: string;
   content: string;
+  width?: number;  // Optional, defaults to CARD_WIDTH
+  height?: number; // Optional, defaults to CARD_HEIGHT
 }
 
 export interface StackData {

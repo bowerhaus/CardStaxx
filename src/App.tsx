@@ -63,11 +63,18 @@ function App() {
 
     const targetStack = stacks.find(stack => {
       if (stack.id === draggedStackId) return false;
+      const topCard = stack.cards[0];
+      const stackWidth = topCard?.width || CARD_WIDTH;
+      const stackHeight = topCard?.height || CARD_HEIGHT;
+      const draggedTopCard = draggedStack.cards[0];
+      const draggedWidth = draggedTopCard?.width || CARD_WIDTH;
+      const draggedHeight = draggedTopCard?.height || CARD_HEIGHT;
+      
       return (
-        x < stack.x + CARD_WIDTH &&
-        x + CARD_WIDTH > stack.x &&
-        y < stack.y + CARD_HEIGHT &&
-        y + CARD_HEIGHT > stack.y
+        x < stack.x + stackWidth &&
+        x + draggedWidth > stack.x &&
+        y < stack.y + stackHeight &&
+        y + draggedHeight > stack.y
       );
     });
 
@@ -134,14 +141,16 @@ function App() {
           return false;
         }
 
-        const stackHeight = CARD_HEIGHT + (stack.cards.length - 1) * 40; // Assuming HEADER_OFFSET is 40
+        const topCard = stack.cards[0];
+        const stackWidth = topCard?.width || CARD_WIDTH;
+        const stackHeight = (topCard?.height || CARD_HEIGHT) + (stack.cards.length - 1) * 40; // Assuming HEADER_OFFSET is 40
         const collision = (
           endX > stack.x &&
-          endX < stack.x + CARD_WIDTH &&
+          endX < stack.x + stackWidth &&
           endY > stack.y &&
           endY < stack.y + stackHeight
         );
-        console.log(`Checking stack ${stack.id} at (${stack.x}, ${stack.y}) with size (${CARD_WIDTH}, ${stackHeight}). Collision: ${collision}`);
+        console.log(`Checking stack ${stack.id} at (${stack.x}, ${stack.y}) with size (${stackWidth}, ${stackHeight}). Collision: ${collision}`);
         return collision;
       });
 
@@ -169,6 +178,17 @@ function App() {
         ...stack,
         cards: stack.cards.map(card =>
           card.id === cardId ? { ...card, title: newTitle, content: newContent } : card
+        ),
+      }))
+    );
+  };
+
+  const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
+    setStacks(
+      stacks.map(stack => ({
+        ...stack,
+        cards: stack.cards.map(card =>
+          card.id === cardId ? { ...card, width: newWidth, height: newHeight } : card
         ),
       }))
     );
@@ -246,6 +266,7 @@ function App() {
         onConnectionDragStart={handleConnectionDragStart}
         onUpdateCard={handleUpdateCard} // Pass onUpdateCard
         onEditStart={handleEditStart} // Pass onEditStart
+        onCardResize={handleCardResize} // Pass onCardResize
       />
       {editingCardId && editingField && editingKonvaNode && (
         <EditableTextOverlay

@@ -10,8 +10,9 @@ interface StackProps {
   onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
-  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void; // Added
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void; // Added
+  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
+  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void; // Added
 }
 
 const CARD_WIDTH = 200;
@@ -26,11 +27,16 @@ const Stack = React.memo(({
   onClick,
   onUpdateCard,
   onEditStart,
+  onCardResize,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
 
   const handleNotecardEditStart = (field: 'title' | 'content', konvaNode: Konva.Node) => {
     onEditStart(stack.cards[0].id, field, konvaNode); // Pass the ID of the top card in the stack
+  };
+
+  const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
+    onCardResize(cardId, newWidth, newHeight);
   };
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -58,6 +64,11 @@ const Stack = React.memo(({
     return null; // Don't render anything if the stack is empty
   }
 
+  // Calculate stack dimensions based on the top card (which might be resized)
+  const topCard = stack.cards[0];
+  const stackWidth = topCard.width || CARD_WIDTH;
+  const stackHeight = (topCard.height || CARD_HEIGHT) + (stack.cards.length - 1) * HEADER_OFFSET;
+
   return (
     <Group
       name="stack-group" // Added name for identification
@@ -73,8 +84,8 @@ const Stack = React.memo(({
     >
       {/* Bounding box for the whole stack */}
       <Rect
-        width={CARD_WIDTH}
-        height={CARD_HEIGHT + (stack.cards.length - 1) * HEADER_OFFSET}
+        width={stackWidth}
+        height={stackHeight}
         fill="rgba(0,0,0,0)" // Added transparent fill for hit detection
         stroke="rgba(0,0,0,0.1)"
         strokeWidth={1}
@@ -85,7 +96,11 @@ const Stack = React.memo(({
       />
       {stack.cards.map((card, index) => (
         <Group key={card.id} y={index * HEADER_OFFSET}>
-          <Notecard card={card} onEditStart={handleNotecardEditStart} />
+          <Notecard 
+            card={card} 
+            onEditStart={handleNotecardEditStart}
+            onResize={index === 0 ? handleCardResize : undefined} // Only top card can be resized
+          />
         </Group>
       ))}
     </Group>
