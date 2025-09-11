@@ -87,7 +87,7 @@ function App() {
         return;
       }
 
-      let targetPath = filePath || undefined;
+      let targetPath: string | undefined = filePath ?? undefined;
       
       if (!targetPath) {
         const result = await ipcRenderer.invoke('save-workspace-dialog');
@@ -111,7 +111,7 @@ function App() {
       const result = await ipcRenderer.invoke('save-file', targetPath, JSON.stringify(workspaceData, null, 2));
       
       if (result.success) {
-        setCurrentFilePath(targetPath);
+        setCurrentFilePath(targetPath || null);
         setHasUnsavedChanges(false);
         // Record as last opened file
         await ipcRenderer.invoke('set-last-opened-file', targetPath);
@@ -437,7 +437,7 @@ function App() {
     <div style={{ display: 'flex' }}>
       <Sidebar 
         onCreateCard={handleCreateCard}
-        onSave={() => saveWorkspace(currentFilePath)}
+        onSave={() => saveWorkspace(currentFilePath ?? undefined)}
         onSaveAs={() => saveWorkspace()}
         onLoad={loadWorkspace}
         onNew={newWorkspace}
