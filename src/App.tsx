@@ -64,7 +64,7 @@ function App() {
 
   // State for card editing
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
-  const [editingField, setEditingField] = useState<'title' | 'content' | null>(null);
+  const [editingField, setEditingField] = useState<'title' | 'content' | 'date' | 'key' | 'tags' | null>(null);
   const [editingKonvaNode, setEditingKonvaNode] = useState<Konva.Node | null>(null);
   const [editingTextValue, setEditingTextValue] = useState<string>('');
 
@@ -213,13 +213,17 @@ function App() {
     setHasUnsavedChanges(false);
   };
 
-  const handleCreateCard = () => {
+  const handleCreateCard = (cardData?: Partial<NotecardData>) => {
     const newCard: NotecardData = {
       id: `card-${Date.now()}`,
-      title: 'New Card',
-      content: 'This is a new notecard.',
+      title: cardData?.title || 'New Card',
+      content: cardData?.content || 'This is a new notecard.',
       date: new Date().toISOString(),
-      backgroundColor: CARD_COLORS.DEFAULT,
+      backgroundColor: cardData?.backgroundColor || CARD_COLORS.DEFAULT,
+      tags: cardData?.tags,
+      key: cardData?.key,
+      width: cardData?.width,
+      height: cardData?.height,
     };
     const newStack: StackData = {
       id: `stack-${Date.now()}`,
@@ -390,12 +394,12 @@ function App() {
     console.log('--- End handleConnectionDragEnd ---');
   };
 
-  const handleUpdateCard = (cardId: string, newTitle: string, newContent: string) => {
+  const handleUpdateCard = (cardId: string, updates: Partial<NotecardData>) => {
     setStacks(
       stacks.map(stack => ({
         ...stack,
         cards: stack.cards.map(card =>
-          card.id === cardId ? { ...card, title: newTitle, content: newContent } : card
+          card.id === cardId ? { ...card, ...updates } : card
         ),
       }))
     );
@@ -428,7 +432,7 @@ function App() {
   };
 
 
-  const handleEditStart = useCallback((cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => {
+  const handleEditStart = useCallback((cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => {
     console.log('handleEditStart received field:', field);
     setEditingCardId(cardId);
     setEditingField(field);
@@ -436,7 +440,27 @@ function App() {
 
     const card = stacks.flatMap(s => s.cards).find(c => c.id === cardId);
     if (card) {
-      setEditingTextValue(field === 'title' ? card.title : card.content);
+      let value = '';
+      switch (field) {
+        case 'title':
+          value = card.title;
+          break;
+        case 'content':
+          value = card.content;
+          break;
+        case 'date':
+          value = card.date ? new Date(card.date).toISOString().split('T')[0] : '';
+          break;
+        case 'key':
+          value = card.key || '';
+          break;
+        case 'tags':
+          value = card.tags ? card.tags.join(', ') : '';
+          break;
+        default:
+          value = '';
+      }
+      setEditingTextValue(value);
     }
   }, [setEditingCardId, setEditingField, setEditingKonvaNode, stacks, setEditingTextValue]);
 
@@ -444,14 +468,49 @@ function App() {
     if (editingCardId && editingField) {
       const currentCard = stacks.flatMap(s => s.cards).find(c => c.id === editingCardId);
       if (currentCard) {
-        // Only update if the text actually changed
         const newValue = editingTextValue.trim();
-        if (newValue !== (editingField === 'title' ? currentCard.title : currentCard.content)) {
-          handleUpdateCard(
-            editingCardId,
-            editingField === 'title' ? newValue : currentCard.title,
-            editingField === 'content' ? newValue : currentCard.content
-          );
+        let updates: Partial<NotecardData> = {};
+        let hasChanged = false;
+
+        switch (editingField) {
+          case 'title':
+            if (newValue !== currentCard.title) {
+              updates.title = newValue;
+              hasChanged = true;
+            }
+            break;
+          case 'content':
+            if (newValue !== currentCard.content) {
+              updates.content = newValue;
+              hasChanged = true;
+            }
+            break;
+          case 'date':
+            const newDate = newValue ? new Date(newValue).toISOString() : new Date().toISOString();
+            if (newDate !== currentCard.date) {
+              updates.date = newDate;
+              hasChanged = true;
+            }
+            break;
+          case 'key':
+            if (newValue !== (currentCard.key || '')) {
+              updates.key = newValue || undefined;
+              hasChanged = true;
+            }
+            break;
+          case 'tags':
+            const newTags = newValue ? newValue.split(',').map(tag => tag.trim()).filter(Boolean) : undefined;
+            const currentTags = currentCard.tags || [];
+            const tagsChanged = JSON.stringify(newTags || []) !== JSON.stringify(currentTags);
+            if (tagsChanged) {
+              updates.tags = newTags;
+              hasChanged = true;
+            }
+            break;
+        }
+
+        if (hasChanged) {
+          handleUpdateCard(editingCardId, updates);
         }
       }
     }
@@ -518,6 +577,8 @@ function App() {
           height={overlayPos.height}
           value={editingTextValue}
           isTextArea={editingField === 'content'}
+          inputType={editingField === 'date' ? 'date' : 'text'}
+          fieldType={editingField}
           onChange={setEditingTextValue}
           onBlur={handleEditBlur}
         />

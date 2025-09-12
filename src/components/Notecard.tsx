@@ -5,7 +5,7 @@ import Konva from 'konva';
 
 interface NotecardProps {
   card: NotecardData;
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
   isResizing?: boolean;
 }
@@ -18,6 +18,9 @@ const CONTENT_PADDING_TOP = 35;
 const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
+  const dateTextRef = useRef<Konva.Text>(null);
+  const keyTextRef = useRef<Konva.Text>(null);
+  const tagsTextRef = useRef<Konva.Text>(null);
   const titleHitRectRef = useRef<Konva.Rect>(null);
   const groupRef = useRef<Konva.Group>(null);
   
@@ -29,6 +32,14 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
     if (onResize && newWidth >= 100 && newHeight >= 80) { // Minimum sizes
       onResize(card.id, Math.round(newWidth), Math.round(newHeight));
     }
+  };
+
+  const getContentY = () => {
+    let y = CONTENT_PADDING_TOP;
+    if (card.date) y = Math.max(y, 56); // Space for date
+    // Key icon is always present, so always reserve space for it
+    y = Math.max(y, card.date ? 82 : 64); // Space for key icon (with or without date)
+    return y;
   };
 
   return (
@@ -72,52 +83,152 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
         }}
       />
       
-      {/* Date and Key fields */}
-      {(card.date || card.key) && (
-        <Text
-          text={[
-            card.date ? new Date(card.date).toLocaleDateString() : '',
-            card.key ? `Key: ${card.key}` : ''
-          ].filter(Boolean).join(' | ')}
-          fontSize={10}
-          fill="#666"
+      {/* Date field with calendar icon */}
+      {card.date && (
+        <>
+          <Text
+            text="📅"
+            fontSize={12}
+            x={TITLE_PADDING}
+            y={32}
+            listening={false}
+          />
+          <Text
+            ref={dateTextRef}
+            text={new Date(card.date).toLocaleDateString('en-GB')}
+            fontSize={12}
+            fill="#666"
+            x={TITLE_PADDING + 18}
+            y={34}
+            width={cardWidth - TITLE_PADDING * 2 - 18}
+            listening={false}
+          />
+        </>
+      )}
+      
+      {/* Hit area for date editing */}
+      {card.date && (
+        <Rect
           x={TITLE_PADDING}
-          y={30}
+          y={32}
           width={cardWidth - TITLE_PADDING * 2}
-          listening={false}
+          height={16}
+          fill="rgba(0,0,0,0)"
+          onMouseEnter={(e) => {
+            e.target.getStage()!.container().style.cursor = 'text';
+          }}
+          onMouseLeave={(e) => {
+            e.target.getStage()!.container().style.cursor = 'default';
+          }}
+          onDblClick={() => {
+            dateTextRef.current && onEditStart(card.id, 'date', dateTextRef.current);
+          }}
         />
       )}
       
-      {/* Tags display */}
-      {card.tags && card.tags.length > 0 && (
-        <Text
-          text={`#${card.tags.join(' #')}`}
-          fontSize={9}
-          fill="#007bff"
-          x={TITLE_PADDING}
-          y={cardHeight - 25}
-          width={cardWidth - TITLE_PADDING * 2}
-          listening={false}
-        />
-      )}
+      {/* Key field with icon - always visible */}
+      {/* Key icon (🔑 unicode) - always clickable */}
+      <Text
+        text="🔑"
+        fontSize={12}
+        x={TITLE_PADDING}
+        y={card.date ? 56 : 40}
+        listening={false}
+      />
+      {/* Key text - always create ref for positioning, only show text if key exists */}
+      <Text
+        ref={keyTextRef}
+        text={card.key || ''}
+        fontSize={12}
+        fill="#666"
+        x={TITLE_PADDING + 18}
+        y={card.date ? 58 : 42}
+        width={cardWidth - TITLE_PADDING * 2 - 18}
+        listening={false}
+        visible={!!card.key}
+      />
+      
+      {/* Clickable area for key icon */}
+      <Rect
+        x={TITLE_PADDING}
+        y={card.date ? 56 : 40}
+        width={16}
+        height={18}
+        fill="rgba(0,0,0,0)"
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'pointer';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
+        onClick={() => {
+          // Always use the key text ref for proper positioning
+          if (keyTextRef.current) {
+            onEditStart(card.id, 'key', keyTextRef.current);
+          }
+        }}
+      />
+      
+      {/* Tags field with icon - always visible */}
+      {/* Tags icon (🏷️ unicode) - always clickable */}
+      <Text
+        text="🏷️"
+        fontSize={12}
+        x={TITLE_PADDING}
+        y={cardHeight - 25}
+        listening={false}
+      />
+      {/* Tags text - always create ref for positioning, only show text if tags exist */}
+      <Text
+        ref={tagsTextRef}
+        text={card.tags && card.tags.length > 0 ? `#${card.tags.join(' #')}` : ''}
+        fontSize={12}
+        fill="#007bff"
+        x={TITLE_PADDING + 18}
+        y={cardHeight - 26}
+        width={cardWidth - TITLE_PADDING * 2 - 18}
+        listening={false}
+        visible={!!(card.tags && card.tags.length > 0)}
+      />
+      
+      {/* Clickable area for tags icon */}
+      <Rect
+        x={TITLE_PADDING}
+        y={cardHeight - 25}
+        width={16}
+        height={15}
+        fill="rgba(0,0,0,0)"
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'pointer';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
+        onClick={() => {
+          // Always use the tags text ref for proper positioning
+          if (tagsTextRef.current) {
+            onEditStart(card.id, 'tags', tagsTextRef.current);
+          }
+        }}
+      />
       
       
       <Text
         ref={contentTextRef}
         text={card.content}
-        fontSize={12}
+        fontSize={14}
         x={TITLE_PADDING}
-        y={card.date || card.key ? 50 : CONTENT_PADDING_TOP}
+        y={getContentY()}
         width={cardWidth - TITLE_PADDING * 2}
-        height={cardHeight - (card.date || card.key ? 50 : CONTENT_PADDING_TOP) - (card.tags && card.tags.length > 0 ? 35 : TITLE_PADDING)}
+        height={cardHeight - getContentY() - 40}
         listening={false}
       />
       {/* Transparent Rect for content hit detection */}
       <Rect
         x={TITLE_PADDING}
-        y={card.date || card.key ? 50 : CONTENT_PADDING_TOP}
+        y={getContentY()}
         width={cardWidth - TITLE_PADDING * 2}
-        height={cardHeight - (card.date || card.key ? 50 : CONTENT_PADDING_TOP) - (card.tags && card.tags.length > 0 ? 35 : TITLE_PADDING)}
+        height={cardHeight - getContentY() - 40}
         fill="rgba(0,0,0,0)" // Transparent fill
         onMouseEnter={(e) => {
           e.target.getStage()!.container().style.cursor = 'text';

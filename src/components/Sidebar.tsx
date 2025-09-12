@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { NotecardData } from '../types';
 
 interface SidebarProps {
-  onCreateCard: () => void;
+  onCreateCard: (cardData?: Partial<NotecardData>) => void;
   onSave: () => void;
   onSaveAs: () => void;
   onLoad: () => void;
@@ -14,6 +15,18 @@ const Sidebar = ({ onCreateCard, onSave, onSaveAs, onLoad, onNew, hasUnsavedChan
   const getFileName = () => {
     if (!currentFilePath) return 'Untitled';
     return currentFilePath.split('/').pop()?.replace('.cardstaxx', '') || 'Untitled';
+  };
+
+  const handleNewCard = () => {
+    // Create card with smart defaults
+    const cardData: Partial<NotecardData> = {
+      title: 'New Card',
+      content: 'This is a new notecard.',
+      date: new Date().toISOString(), // Today's date
+      key: 'general', // Default key
+      tags: ['note'] // Default tag
+    };
+    onCreateCard(cardData);
   };
 
   return (
@@ -33,7 +46,9 @@ const Sidebar = ({ onCreateCard, onSave, onSaveAs, onLoad, onNew, hasUnsavedChan
       </div>
       
       <hr />
-      <button onClick={onCreateCard}>+ Create New Card</button>
+      <button onClick={handleNewCard} style={{ width: '100%', marginBottom: '10px' }}>
+        New Card
+      </button>
       <hr />
       {/* Connection buttons removed */}
       <button>Create Timeline</button>

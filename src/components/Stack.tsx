@@ -2,7 +2,7 @@ import React from 'react';
 import { Group, Rect } from 'react-konva';
 import Konva from 'konva';
 import Notecard from './Notecard';
-import { StackData } from '../types';
+import { StackData, NotecardData } from '../types';
 
 interface StackProps {
   stack: StackData;
@@ -10,8 +10,8 @@ interface StackProps {
   onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
-  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void;
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
+  onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 

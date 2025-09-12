@@ -8,6 +8,8 @@ interface EditableTextOverlayProps {
   height: number;
   value: string;
   isTextArea?: boolean;
+  inputType?: string;
+  fieldType?: 'title' | 'content' | 'date' | 'key' | 'tags';
   onChange: (newValue: string) => void;
   onBlur: () => void;
 }
@@ -19,6 +21,8 @@ const EditableTextOverlay = ({
   height,
   value,
   isTextArea = false,
+  inputType = 'text',
+  fieldType,
   onChange,
   onBlur,
 }: EditableTextOverlayProps) => {
@@ -91,15 +95,15 @@ const EditableTextOverlay = ({
   ) : (
     <input
       ref={inputRef}
-      type="text"
+      type={inputType}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onBlur={onBlur}
       onKeyDown={handleKeyDown}
       style={{ 
         ...commonStyle, 
-        fontSize: '16px', 
-        fontWeight: 'bold',
+        fontSize: fieldType === 'key' ? '12px' : fieldType === 'tags' ? '12px' : inputType === 'date' ? '14px' : fieldType === 'content' ? '14px' : '16px', 
+        fontWeight: fieldType === 'key' || fieldType === 'tags' || fieldType === 'content' || inputType === 'date' ? 'normal' : 'bold',
         fontFamily: 'Arial, sans-serif',
         lineHeight: '1',
       }}

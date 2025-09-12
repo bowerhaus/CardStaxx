@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stage, Layer, Line, Circle } from 'react-konva'; // Import Circle
-import { StackData, ConnectionData } from '../types';
+import { StackData, ConnectionData, NotecardData } from '../types';
 import Stack from './Stack';
 import Konva from 'konva'; // Import Konva for event types
 
@@ -20,8 +20,8 @@ interface CanvasProps {
   onConnectionDragStart: (fromStackId: string, startX: number, startY: number) => void;
   onConnectionDragMove: (currentX: number, currentY: number) => void;
   onConnectionDragEnd: (endX: number, endY: number) => void;
-  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void;
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
+  onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 
