@@ -31,9 +31,6 @@ const Stack = React.memo(({
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
 
-  const handleNotecardEditStart = (field: 'title' | 'content', konvaNode: Konva.Node) => {
-    onEditStart(stack.cards[0].id, field, konvaNode); // Pass the ID of the top card in the stack
-  };
 
   const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
     onCardResize(cardId, newWidth, newHeight);
@@ -98,7 +95,7 @@ const Stack = React.memo(({
         <Group key={card.id} y={index * HEADER_OFFSET}>
           <Notecard 
             card={card} 
-            onEditStart={handleNotecardEditStart}
+            onEditStart={onEditStart}
             onResize={index === 0 ? handleCardResize : undefined} // Only top card can be resized
           />
         </Group>

@@ -5,7 +5,7 @@ import Konva from 'konva';
 
 interface NotecardProps {
   card: NotecardData;
-  onEditStart: (field: 'title' | 'content', konvaNode: Konva.Node) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
   isResizing?: boolean;
 }
@@ -68,7 +68,7 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
         }}
         onDblClick={() => {
           console.log('Title hit rect double-clicked!');
-          titleTextRef.current && onEditStart('title', titleTextRef.current);
+          titleTextRef.current && onEditStart(card.id, 'title', titleTextRef.current);
         }}
       />
       <Text
@@ -95,7 +95,7 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
         }}
         onDblClick={() => {
           console.log('Content hit rect double-clicked!');
-          contentTextRef.current && onEditStart('content', contentTextRef.current);
+          contentTextRef.current && onEditStart(card.id, 'content', contentTextRef.current);
         }}
       />
       
