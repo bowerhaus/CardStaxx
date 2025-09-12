@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Group, Rect, Text } from 'react-konva';
-import { NotecardData } from '../types';
+import { NotecardData, CARD_COLORS } from '../types';
 import Konva from 'konva';
 
 interface NotecardProps {
@@ -36,7 +36,7 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
       <Rect
         width={cardWidth}
         height={cardHeight}
-        fill="white"
+        fill={card.backgroundColor || CARD_COLORS.DEFAULT}
         stroke="black"
         strokeWidth={1}
         cornerRadius={5}
@@ -71,21 +71,52 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
           titleTextRef.current && onEditStart(card.id, 'title', titleTextRef.current);
         }}
       />
+      
+      {/* Date and Key fields */}
+      {(card.date || card.key) && (
+        <Text
+          text={[
+            card.date ? new Date(card.date).toLocaleDateString() : '',
+            card.key ? `Key: ${card.key}` : ''
+          ].filter(Boolean).join(' | ')}
+          fontSize={10}
+          fill="#666"
+          x={TITLE_PADDING}
+          y={30}
+          width={cardWidth - TITLE_PADDING * 2}
+          listening={false}
+        />
+      )}
+      
+      {/* Tags display */}
+      {card.tags && card.tags.length > 0 && (
+        <Text
+          text={`#${card.tags.join(' #')}`}
+          fontSize={9}
+          fill="#007bff"
+          x={TITLE_PADDING}
+          y={cardHeight - 25}
+          width={cardWidth - TITLE_PADDING * 2}
+          listening={false}
+        />
+      )}
+      
       <Text
         ref={contentTextRef}
         text={card.content}
         fontSize={12}
-        padding={CONTENT_PADDING_TOP}
-        width={cardWidth}
-        height={cardHeight - CONTENT_PADDING_TOP - TITLE_PADDING}
-        listening={false} // Disable listening on Text to prevent default selection
+        x={TITLE_PADDING}
+        y={card.date || card.key ? 50 : CONTENT_PADDING_TOP}
+        width={cardWidth - TITLE_PADDING * 2}
+        height={cardHeight - (card.date || card.key ? 50 : CONTENT_PADDING_TOP) - (card.tags && card.tags.length > 0 ? 35 : TITLE_PADDING)}
+        listening={false}
       />
       {/* Transparent Rect for content hit detection */}
       <Rect
         x={TITLE_PADDING}
-        y={CONTENT_PADDING_TOP}
+        y={card.date || card.key ? 50 : CONTENT_PADDING_TOP}
         width={cardWidth - TITLE_PADDING * 2}
-        height={cardHeight - CONTENT_PADDING_TOP - TITLE_PADDING}
+        height={cardHeight - (card.date || card.key ? 50 : CONTENT_PADDING_TOP) - (card.tags && card.tags.length > 0 ? 35 : TITLE_PADDING)}
         fill="rgba(0,0,0,0)" // Transparent fill
         onMouseEnter={(e) => {
           e.target.getStage()!.container().style.cursor = 'text';

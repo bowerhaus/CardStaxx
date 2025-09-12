@@ -63,8 +63,13 @@ const Stack = React.memo(({
 
   // Calculate stack dimensions based on the top card (which might be resized)
   const topCard = stack.cards[0];
-  const stackWidth = topCard.width || CARD_WIDTH;
-  const stackHeight = (topCard.height || CARD_HEIGHT) + (stack.cards.length - 1) * HEADER_OFFSET;
+  const baseCardWidth = topCard.width || CARD_WIDTH;
+  const baseCardHeight = topCard.height || CARD_HEIGHT;
+  
+  // Make stack border slightly larger than the top card
+  const borderPadding = 10;
+  const stackWidth = baseCardWidth + borderPadding * 2;
+  const stackHeight = baseCardHeight + (stack.cards.length - 1) * HEADER_OFFSET + borderPadding * 2;
 
   return (
     <Group
@@ -91,15 +96,37 @@ const Stack = React.memo(({
         shadowBlur={10}
         shadowOpacity={0.3}
       />
-      {stack.cards.map((card, index) => (
-        <Group key={card.id} y={index * HEADER_OFFSET}>
-          <Notecard 
-            card={card} 
-            onEditStart={onEditStart}
-            onResize={index === 0 ? handleCardResize : undefined} // Only top card can be resized
-          />
-        </Group>
-      ))}
+      {stack.cards.map((card, index) => {
+        // Progressive scaling for rolodex perspective effect
+        const totalCards = stack.cards.length;
+        const isTopCard = index === totalCards - 1; // Last card is the "top" visible card
+        const depthFromTop = totalCards - 1 - index; // How far back from the top visible card
+        
+        // Progressive scaling (top visible card largest, cards get smaller going back) - more subtle
+        const scale = isTopCard ? 1.0 : Math.max(0.98 - depthFromTop * 0.02, 0.9);
+        
+        // Calculate offset to keep scaling centered around the card's center
+        const cardWidth = card.width || CARD_WIDTH;
+        const cardHeight = card.height || CARD_HEIGHT;
+        const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
+        const yOffset = borderPadding + index * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
+        
+        return (
+          <Group 
+            key={card.id} 
+            x={xOffset}
+            y={yOffset}
+            scaleX={scale}
+            scaleY={scale}
+          >
+            <Notecard 
+              card={card} 
+              onEditStart={onEditStart}
+              onResize={index === 0 ? handleCardResize : undefined} // Only top card can be resized
+            />
+          </Group>
+        );
+      })}
     </Group>
   );
 });

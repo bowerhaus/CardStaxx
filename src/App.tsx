@@ -2,8 +2,35 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay'; // Import new component
-import { NotecardData, StackData, ConnectionData, WorkspaceData } from './types';
+import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS } from './types';
 import Konva from 'konva'; // Import Konva for Node type
+
+// Data migration utility for backward compatibility
+const migrateWorkspaceData = (data: any): WorkspaceData => {
+  // Migrate NotecardData fields
+  const migrateCard = (card: any): NotecardData => ({
+    ...card,
+    date: card.date || new Date().toISOString(), // Default to current date if missing
+    backgroundColor: card.backgroundColor || CARD_COLORS.DEFAULT,
+    tags: card.tags || [],
+    key: card.key || undefined,
+  });
+
+  // Migrate ConnectionData fields  
+  const migrateConnection = (connection: any): ConnectionData => ({
+    ...connection,
+    label: connection.label || undefined,
+  });
+
+  return {
+    ...data,
+    stacks: data.stacks?.map((stack: any) => ({
+      ...stack,
+      cards: stack.cards?.map(migrateCard) || [],
+    })) || [],
+    connections: data.connections?.map(migrateConnection) || [],
+  };
+};
 
 const CARD_WIDTH = 200;
 const CARD_HEIGHT = 150;
@@ -17,7 +44,13 @@ function App() {
       x: 50,
       y: 50,
       cards: [
-        { id: 'card-1', title: 'Welcome!', content: 'This is a card in a stack.' },
+        { 
+          id: 'card-1', 
+          title: 'Welcome!', 
+          content: 'This is a card in a stack.',
+          date: new Date().toISOString(),
+          backgroundColor: CARD_COLORS.DEFAULT
+        },
       ],
     },
   ]);
@@ -47,7 +80,8 @@ function App() {
           try {
             const fileResult = await ipcRenderer.invoke('load-file', lastFilePath);
             if (fileResult.success && fileResult.data) {
-              const workspaceData: WorkspaceData = JSON.parse(fileResult.data);
+              const rawData = JSON.parse(fileResult.data);
+              const workspaceData = migrateWorkspaceData(rawData);
               
               // Clear default welcome card when loading a workspace
               setStacks(workspaceData.stacks);
@@ -146,7 +180,8 @@ function App() {
       const fileResult = await ipcRenderer.invoke('load-file', filePath);
       
       if (fileResult.success && fileResult.data) {
-        const workspaceData: WorkspaceData = JSON.parse(fileResult.data);
+        const rawData = JSON.parse(fileResult.data);
+        const workspaceData = migrateWorkspaceData(rawData);
         
         setStacks(workspaceData.stacks);
         setConnections(workspaceData.connections);
@@ -183,6 +218,8 @@ function App() {
       id: `card-${Date.now()}`,
       title: 'New Card',
       content: 'This is a new notecard.',
+      date: new Date().toISOString(),
+      backgroundColor: CARD_COLORS.DEFAULT,
     };
     const newStack: StackData = {
       id: `stack-${Date.now()}`,
