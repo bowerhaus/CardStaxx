@@ -3,13 +3,13 @@
 This document tracks the comprehensive implementation progress of the CardStaxx application according to the updated PRD specifications.
 
 ## 🎯 Current Phase: Phase 2 - Enhanced Card Features
-**Progress: 0% (0/8 tasks completed)**
+**Progress: 25% (2/8 tasks completed)**
 
 ### Current Phase Mini-Plan:
 - [ ] **2.1** Implement card background color selection UI
 - [ ] **2.2** Add markdown rendering and editing support
-- [ ] **2.3** Display date and key fields visibly on cards
-- [ ] **2.4** Show tags on individual cards
+- [x] **2.3** Display date and key fields visibly on cards
+- [x] **2.4** Show tags on individual cards
 - [ ] **2.5** Implement card deletion with confirmation dialogs
 - [ ] **2.6** Update card editing overlay for new fields
 - [ ] **2.7** Add markdown editor with preview toggle
@@ -42,12 +42,12 @@ This document tracks the comprehensive implementation progress of the CardStaxx 
 - [x] **1.6** Update type definitions and interfaces
 
 ### 🔄 Phase 2: Enhanced Card Features (IN PROGRESS)
-**Progress: 0% (0/8 tasks completed)**
+**Progress: 25% (2/8 tasks completed)**
 
 - [ ] **2.1** Implement card background color selection UI
 - [ ] **2.2** Add markdown rendering and editing support
-- [ ] **2.3** Display date and key fields visibly on cards
-- [ ] **2.4** Show tags on individual cards
+- [x] **2.3** Display date and key fields visibly on cards
+- [x] **2.4** Show tags on individual cards
 - [ ] **2.5** Implement card deletion with confirmation dialogs
 - [ ] **2.6** Update card editing overlay for new fields
 - [ ] **2.7** Add markdown editor with preview toggle
@@ -158,6 +158,15 @@ This document tracks the comprehensive implementation progress of the CardStaxx 
 - [x] Error handling for corrupted/missing files
 - [x] Settings storage for preferences and recent files
 - [x] Workspace versioning and metadata
+
+### **🎨 Additional Visual Enhancements (Phase 1.5 - Completed):**
+- [x] **Enhanced Rolodex Perspective**: Progressive scaling effect for stack depth visualization
+- [x] **Card Visual Fields**: Date, key, and tags display integration on cards
+- [x] **Background Color Support**: Card background colors from defined palette
+- [x] **Improved Resize Handles**: Fixed mouse tracking and positioning for card resize
+- [x] **Stack-wide Resize**: Resizing any card in a stack now resizes all cards in that stack
+- [x] **Enhanced Stack Borders**: Expanded stack borders with proper padding around cards
+- [x] **Data Migration**: Backward compatibility for existing .cardstaxx files
 
 ---
 

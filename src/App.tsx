@@ -404,15 +404,29 @@ function App() {
 
   const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
     setStacks(
-      stacks.map(stack => ({
-        ...stack,
-        cards: stack.cards.map(card =>
-          card.id === cardId ? { ...card, width: newWidth, height: newHeight } : card
-        ),
-      }))
+      stacks.map(stack => {
+        // Check if this stack contains the card being resized
+        const hasCard = stack.cards.some(card => card.id === cardId);
+        
+        if (hasCard) {
+          // If this stack contains the card, resize ALL cards in the stack
+          return {
+            ...stack,
+            cards: stack.cards.map(card => ({
+              ...card,
+              width: newWidth,
+              height: newHeight
+            }))
+          };
+        }
+        
+        // Otherwise, leave the stack unchanged
+        return stack;
+      })
     );
     setHasUnsavedChanges(true);
   };
+
 
   const handleEditStart = useCallback((cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => {
     console.log('handleEditStart received field:', field);

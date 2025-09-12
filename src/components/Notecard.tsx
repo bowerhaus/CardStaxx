@@ -101,6 +101,7 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
         />
       )}
       
+      
       <Text
         ref={contentTextRef}
         text={card.content}
@@ -147,37 +148,39 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
           onMouseLeave={(e) => {
             e.target.getStage()!.container().style.cursor = 'default';
           }}
-          draggable
-          dragBoundFunc={(pos) => {
-            // Allow the handle to move freely during resize
-            return pos;
-          }}
-          onDragStart={(e) => {
-            // Stop propagation to prevent card dragging
-            e.cancelBubble = true;
-          }}
-          onDragMove={(e) => {
+          onMouseDown={(e) => {
             // Stop propagation to prevent card dragging
             e.cancelBubble = true;
             
             const stage = e.target.getStage();
             if (!stage || !groupRef.current) return;
             
-            const pointerPos = stage.getPointerPosition();
-            if (!pointerPos) return;
+            // Start tracking mouse movements for resize
+            const handleMouseMove = () => {
+              const pointerPos = stage.getPointerPosition();
+              if (!pointerPos || !groupRef.current) return;
+              
+              // Get the absolute position and transform of the card group
+              const groupTransform = groupRef.current.getAbsoluteTransform();
+              
+              // Account for any scaling or transformations by using the inverse transform
+              const localPoint = groupTransform.copy().invert().point(pointerPos);
+              
+              const newWidth = localPoint.x;
+              const newHeight = localPoint.y;
+              
+              handleResize(newWidth, newHeight);
+            };
             
-            const groupPos = groupRef.current.getAbsolutePosition();
-            const newWidth = pointerPos.x - groupPos.x;
-            const newHeight = pointerPos.y - groupPos.y;
+            const handleMouseUp = () => {
+              stage.off('mousemove', handleMouseMove);
+              stage.off('mouseup', handleMouseUp);
+              document.body.style.cursor = 'default';
+            };
             
-            handleResize(newWidth, newHeight);
-          }}
-          onDragEnd={(e) => {
-            // Stop propagation to prevent card dragging
-            e.cancelBubble = true;
-            // Reset handle position to bottom-right corner
-            e.target.x(cardWidth - 10);
-            e.target.y(cardHeight - 10);
+            stage.on('mousemove', handleMouseMove);
+            stage.on('mouseup', handleMouseUp);
+            document.body.style.cursor = 'se-resize';
           }}
         />
       )}

@@ -58,7 +58,7 @@ A directed relationship between two stacks of notecards.
 *   **Card Editing:** 
     *   **Text Content:** Double-click cards to edit title and content with in-place text overlays. Content supports markdown formatting (rendered in display mode, raw markdown shown when editing).
     *   **Background Colors:** Cards can have their background color changed from a palette of 20 pastel colors.
-*   **Card Resizing:** Individual cards can be resized using drag handles, with width and height stored per card.
+*   **Card Resizing:** Cards can be resized using drag handles on the top (most visible) card in each stack. When a card in a stack is resized, all cards in that stack are resized to maintain visual consistency.
 *   **Stacking:**
     *   **Creation:** Dragging and dropping a card onto another card creates a new stack.
     *   **Adding:** Dropping a card onto an existing stack adds it to that stack.

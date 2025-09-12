@@ -22,7 +22,7 @@ interface CanvasProps {
   onConnectionDragEnd: (endX: number, endY: number) => void;
   onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void;
   onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
-  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void; // Added
+  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 
 const Canvas = React.memo(({

@@ -12,7 +12,7 @@ interface StackProps {
   onClick: (id: string) => void;
   onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void;
   onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void;
-  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void; // Added
+  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 
 const CARD_WIDTH = 200;
@@ -35,6 +35,7 @@ const Stack = React.memo(({
   const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
     onCardResize(cardId, newWidth, newHeight);
   };
+
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     e.target.moveToTop();
@@ -102,8 +103,8 @@ const Stack = React.memo(({
         const isTopCard = index === totalCards - 1; // Last card is the "top" visible card
         const depthFromTop = totalCards - 1 - index; // How far back from the top visible card
         
-        // Progressive scaling (top visible card largest, cards get smaller going back) - more subtle
-        const scale = isTopCard ? 1.0 : Math.max(0.98 - depthFromTop * 0.02, 0.9);
+        // Progressive scaling (top visible card largest, cards get smaller going back) - very subtle
+        const scale = isTopCard ? 1.0 : Math.max(0.99 - depthFromTop * 0.01, 0.95);
         
         // Calculate offset to keep scaling centered around the card's center
         const cardWidth = card.width || CARD_WIDTH;
@@ -122,7 +123,7 @@ const Stack = React.memo(({
             <Notecard 
               card={card} 
               onEditStart={onEditStart}
-              onResize={index === 0 ? handleCardResize : undefined} // Only top card can be resized
+              onResize={isTopCard ? handleCardResize : undefined} // Only top (most visible) card can be resized
             />
           </Group>
         );
