@@ -14,6 +14,7 @@ interface StackProps {
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
+  onCardDelete: (cardId: string, x: number, y: number) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
 }
@@ -32,6 +33,7 @@ const Stack = React.memo(({
   onEditStart,
   onCardResize,
   onColorPickerOpen,
+  onCardDelete,
   editingCardId,
   editingField,
 }: StackProps) => {
@@ -131,6 +133,7 @@ const Stack = React.memo(({
               onEditStart={onEditStart}
               onResize={isTopCard ? handleCardResize : undefined} // Only top (most visible) card can be resized
               onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
+              onDelete={isTopCard ? onCardDelete : undefined} // Only top card can be deleted
               isEditing={editingCardId === card.id && editingField === 'content'} // Pass editing state
             />
           </Group>

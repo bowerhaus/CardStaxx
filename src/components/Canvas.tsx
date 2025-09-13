@@ -24,6 +24,7 @@ interface CanvasProps {
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
+  onCardDelete: (cardId: string, x: number, y: number) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
 }
@@ -43,6 +44,7 @@ const Canvas = React.memo(({
   onEditStart,
   onCardResize,
   onColorPickerOpen,
+  onCardDelete,
   editingCardId,
   editingField,
 }: CanvasProps) => {
@@ -83,6 +85,7 @@ const Canvas = React.memo(({
               onEditStart={onEditStart}
               onCardResize={onCardResize}
               onColorPickerOpen={onColorPickerOpen}
+              onCardDelete={onCardDelete}
               editingCardId={editingCardId}
               editingField={editingField}
             />

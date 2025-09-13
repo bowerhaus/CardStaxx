@@ -4,6 +4,7 @@ import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay'; // Import new component
 import ColorPicker from './components/ColorPicker';
 import MarkdownRenderer from './components/MarkdownRenderer';
+import ConfirmDialog from './components/ConfirmDialog';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS } from './types';
 import Konva from 'konva'; // Import Konva for Node type
 
@@ -80,6 +81,10 @@ function App() {
   // State for color picker
   const [colorPickerCardId, setColorPickerCardId] = useState<string | null>(null);
   const [colorPickerPosition, setColorPickerPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // State for delete confirmation dialog
+  const [deleteConfirmCardId, setDeleteConfirmCardId] = useState<string | null>(null);
+  const [deleteConfirmPosition, setDeleteConfirmPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // State for scroll throttling
   const [lastScrollTime, setLastScrollTime] = useState<{ [stackId: string]: number }>({});
@@ -505,6 +510,44 @@ function App() {
     setColorPickerCardId(null);
   };
 
+  const handleCardDeleteRequest = (cardId: string, x: number, y: number) => {
+    setDeleteConfirmCardId(cardId);
+    setDeleteConfirmPosition({ x, y });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmCardId) {
+      // Find and remove the card from its stack
+      setStacks(prevStacks => {
+        return prevStacks.map(stack => {
+          // Check if this stack contains the card to delete
+          const cardIndex = stack.cards.findIndex(card => card.id === deleteConfirmCardId);
+          
+          if (cardIndex !== -1) {
+            // Remove the card from the stack
+            const updatedCards = stack.cards.filter(card => card.id !== deleteConfirmCardId);
+            
+            // Return updated stack with remaining cards
+            return {
+              ...stack,
+              cards: updatedCards
+            };
+          }
+          
+          return stack;
+        }).filter(stack => stack.cards.length > 0); // Remove empty stacks
+      });
+      
+      setHasUnsavedChanges(true);
+    }
+    
+    setDeleteConfirmCardId(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmCardId(null);
+  };
+
   const handleEditBlur = () => {
     if (editingCardId && editingField) {
       const currentCard = stacks.flatMap(s => s.cards).find(c => c.id === editingCardId);
@@ -655,6 +698,7 @@ function App() {
         onEditStart={handleEditStart} // Pass onEditStart
         onCardResize={handleCardResize} // Pass onCardResize
         onColorPickerOpen={handleColorPickerOpen} // Pass onColorPickerOpen
+        onCardDelete={handleCardDeleteRequest} // Pass delete handler
         editingCardId={editingCardId} // Pass editing state
         editingField={editingField} // Pass editing field
       />
@@ -693,6 +737,16 @@ function App() {
           onClose={handleColorPickerClose}
           x={colorPickerPosition.x}
           y={colorPickerPosition.y}
+        />
+      )}
+      {deleteConfirmCardId && (
+        <ConfirmDialog
+          title="Delete Card"
+          message={`Are you sure you want to delete the card "${stacks.flatMap(s => s.cards).find(c => c.id === deleteConfirmCardId)?.title || 'Untitled'}"? This action cannot be undone.`}
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+          x={deleteConfirmPosition.x}
+          y={deleteConfirmPosition.y}
         />
       )}
     </div>

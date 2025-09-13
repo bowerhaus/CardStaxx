@@ -8,6 +8,7 @@ interface NotecardProps {
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen?: (cardId: string, x: number, y: number) => void;
+  onDelete?: (cardId: string, x: number, y: number) => void;
   isEditing?: boolean;
   isResizing?: boolean;
 }
@@ -17,7 +18,7 @@ const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isEditing = false, isResizing = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, isEditing = false, isResizing = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -297,6 +298,47 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isEditing = 
             document.body.style.cursor = 'se-resize';
           }}
         />
+      )}
+
+      {/* Delete button - top-right corner */}
+      {onDelete && (
+        <>
+          <Text
+            text="✕"
+            fontSize={14}
+            fontStyle="bold"
+            x={cardWidth - 25}
+            y={5}
+            fill="#ff4444"
+            listening={false}
+          />
+          <Rect
+            x={cardWidth - 25}
+            y={5}
+            width={20}
+            height={20}
+            fill="rgba(0,0,0,0)"
+            onMouseEnter={(e) => {
+              e.target.getStage()!.container().style.cursor = 'pointer';
+            }}
+            onMouseLeave={(e) => {
+              e.target.getStage()!.container().style.cursor = 'default';
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true; // Prevent propagation to card
+              const stage = e.target.getStage();
+              if (stage && groupRef.current) {
+                // Get absolute position for confirmation dialog placement
+                const transform = groupRef.current.getAbsoluteTransform();
+                const stageRect = stage.container().getBoundingClientRect();
+                const absolutePos = transform.point({ x: cardWidth - 25, y: 5 });
+                const screenX = stageRect.left + absolutePos.x;
+                const screenY = stageRect.top + absolutePos.y;
+                onDelete(card.id, screenX, screenY);
+              }
+            }}
+          />
+        </>
       )}
 
       {/* Color picker button - permanent at bottom-right */}
