@@ -58,6 +58,7 @@ interface CanvasProps {
   isTimelineVisible?: boolean;
   onTimelineCardClick?: (cardId: string) => void;
   onTimelineCardHover?: (cardId: string | null) => void;
+  canvasZoom?: number;
 }
 
 const Canvas = React.memo(({
@@ -84,7 +85,8 @@ const Canvas = React.memo(({
   highlightedCardIds,
   isTimelineVisible,
   onTimelineCardClick,
-  onTimelineCardHover
+  onTimelineCardHover,
+  canvasZoom = 1
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
@@ -119,6 +121,9 @@ const Canvas = React.memo(({
     stackPosition: { x: number; y: number };
     timelineX: number;
     timelineY: number;
+    width?: number;
+    height?: number;
+    backgroundColor?: string;
   };
 
   type TimelineCardGroup = {
@@ -184,6 +189,8 @@ const Canvas = React.memo(({
       <Stage
         width={canvasWidth}
         height={canvasHeight}
+        scaleX={canvasZoom}
+        scaleY={canvasZoom}
         onMouseMove={handleMouseMove}
       >
         {/* Layer for Stacks (background) */}

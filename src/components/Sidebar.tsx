@@ -20,6 +20,10 @@ interface SidebarProps {
   filteredCards: number;
   isTimelineVisible: boolean;
   onTimelineToggle: () => void;
+  canvasZoom: number;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onZoomReset: () => void;
 }
 
 const Sidebar = ({ 
@@ -40,7 +44,11 @@ const Sidebar = ({
   totalCards,
   filteredCards,
   isTimelineVisible,
-  onTimelineToggle
+  onTimelineToggle,
+  canvasZoom,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset
 }: SidebarProps) => {
   const getFileName = () => {
     if (!currentFilePath) return 'Untitled';
@@ -305,9 +313,63 @@ const Sidebar = ({
           📅 {isTimelineVisible ? 'Hide Timeline' : 'Show Timeline'}
         </button>
       </div>
-      <div>
-        <h4 style={{ fontFamily: 'inherit' }}>Canvas Zoom</h4>
-        {/* Zoom controls will go here */}
+      {/* Canvas Zoom Controls */}
+      <div style={{ marginTop: '20px' }}>
+        <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontFamily: 'inherit' }}>Canvas Zoom</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', color: '#666', fontFamily: 'inherit' }}>Zoom: {Math.round(canvasZoom * 100)}%</span>
+          </div>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            <button
+              onClick={onZoomOut}
+              disabled={canvasZoom <= 0.5}
+              style={{
+                flex: 1,
+                padding: '6px 8px',
+                fontSize: '12px',
+                backgroundColor: canvasZoom <= 0.5 ? '#f0f0f0' : '#f8f9fa',
+                color: canvasZoom <= 0.5 ? '#999' : '#333',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                cursor: canvasZoom <= 0.5 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              🔍− Zoom Out
+            </button>
+            <button
+              onClick={onZoomIn}
+              disabled={canvasZoom >= 2}
+              style={{
+                flex: 1,
+                padding: '6px 8px',
+                fontSize: '12px',
+                backgroundColor: canvasZoom >= 2 ? '#f0f0f0' : '#f8f9fa',
+                color: canvasZoom >= 2 ? '#999' : '#333',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                cursor: canvasZoom >= 2 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              🔍+ Zoom In
+            </button>
+          </div>
+          <button
+            onClick={onZoomReset}
+            style={{
+              width: '100%',
+              padding: '6px 8px',
+              fontSize: '12px',
+              backgroundColor: canvasZoom === 1 ? '#e9ecef' : '#f8f9fa',
+              color: '#333',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🎯 Reset (100%)
+          </button>
+        </div>
       </div>
     </div>
   );

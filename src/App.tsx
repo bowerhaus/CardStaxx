@@ -101,6 +101,79 @@ function App() {
   // State for timeline
   const [isTimelineVisible, setIsTimelineVisible] = useState<boolean>(false);
 
+  // State for canvas zoom
+  const [canvasZoom, setCanvasZoom] = useState<number>(1); // 1 = 100%
+
+  // Zoom handlers
+  const handleZoomIn = () => {
+    setCanvasZoom(prev => Math.min(prev + 0.1, 2)); // Max 200%
+    setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
+  };
+
+  const handleZoomOut = () => {
+    setCanvasZoom(prev => Math.max(prev - 0.1, 0.5)); // Min 50%
+    setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
+  };
+
+  const handleZoomReset = () => {
+    setCanvasZoom(1); // Reset to 100%
+    setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle shortcuts when not editing text
+      if (editingCardId || editingConnectionId) {
+        if (e.key === 'Escape') {
+          // Cancel editing
+          setEditingCardId(null);
+          setEditingField(null);
+          setEditingKonvaNode(null);
+          setEditingConnectionId(null);
+        }
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'n':
+            e.preventDefault();
+            newWorkspace();
+            break;
+          case 'o':
+            e.preventDefault();
+            loadWorkspace();
+            break;
+          case 's':
+            e.preventDefault();
+            if (e.shiftKey) {
+              saveWorkspace(); // Save As
+            } else {
+              saveWorkspace(currentFilePath ?? undefined); // Save
+            }
+            break;
+          case '=':
+          case '+':
+            e.preventDefault();
+            handleZoomIn();
+            break;
+          case '-':
+            e.preventDefault();
+            handleZoomOut();
+            break;
+          case '0':
+            e.preventDefault();
+            handleZoomReset();
+            break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editingCardId, editingConnectionId, currentFilePath]);
+
   // Search and filtering functions
   const performSearch = useCallback((filters: SearchFilters): SearchResult[] => {
     const results: SearchResult[] = [];
@@ -927,6 +1000,10 @@ function App() {
         filteredCards={filteredStacks.reduce((count, stack) => count + stack.cards.length, 0)}
         isTimelineVisible={isTimelineVisible}
         onTimelineToggle={handleTimelineToggle}
+        canvasZoom={canvasZoom}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onZoomReset={handleZoomReset}
       />
       <Canvas
         stacks={filteredStacks}
@@ -953,6 +1030,7 @@ function App() {
         isTimelineVisible={isTimelineVisible} // Pass timeline visibility
         onTimelineCardClick={handleTimelineCardClick} // Pass timeline click handler
         onTimelineCardHover={handleTimelineCardHover} // Pass timeline hover handler
+        canvasZoom={canvasZoom} // Pass canvas zoom
       />
       {/* Markdown renderers for card content */}
       {cardPositions.map(({ card, x, y, width, height, isEditing }) => 
