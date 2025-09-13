@@ -1,5 +1,5 @@
 import React from 'react';
-import { Group, Rect } from 'react-konva';
+import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import Notecard from './Notecard';
 import { StackData, NotecardData } from '../types';
@@ -77,8 +77,9 @@ const Stack = React.memo(({
   
   // Make stack border slightly larger than the top card
   const borderPadding = 10;
+  const headerTextSpace = stack.cards.length > 1 ? 8 : 0; // Extra space for header text
   const stackWidth = baseCardWidth + borderPadding * 2;
-  const stackHeight = baseCardHeight + (stack.cards.length - 1) * HEADER_OFFSET + borderPadding * 2;
+  const stackHeight = baseCardHeight + (stack.cards.length - 1) * HEADER_OFFSET + borderPadding * 2 + headerTextSpace;
 
   return (
     <Group
@@ -93,18 +94,45 @@ const Stack = React.memo(({
       onWheel={handleWheel}
       onClick={handleClick}
     >
-      {/* Bounding box for the whole stack */}
+      {/* Dotted border around the whole stack */}
       <Rect
         width={stackWidth}
         height={stackHeight}
-        fill="rgba(0,0,0,0)" // Added transparent fill for hit detection
-        stroke="rgba(0,0,0,0.1)"
+        fill="rgba(0,0,0,0)" // Transparent fill for hit detection
+        stroke="rgba(100,100,100,0.45)" // Adjusted opacity
         strokeWidth={1}
-        cornerRadius={5}
-        shadowColor="black"
-        shadowBlur={10}
-        shadowOpacity={0.3}
+        dash={[3, 3]} // Smaller dashes: 3px dash, 3px gap
+        cornerRadius={8}
+        shadowColor="rgba(0,0,0,0.1)"
+        shadowBlur={4}
+        shadowOpacity={0.5}
       />
+      
+      {/* "Card X of Y" header for multi-card stacks */}
+      {stack.cards.length > 1 && (() => {
+        // The top visible card is the last card in the array (highest index)
+        // Since scrolling rearranges the array, we need a better way to track position
+        // For now, let's use a simpler approach: sort cards by ID to get stable ordering
+        const sortedCards = [...stack.cards].sort((a, b) => a.id.localeCompare(b.id));
+        const topCard = stack.cards[stack.cards.length - 1];
+        const currentCardNumber = sortedCards.findIndex(card => card.id === topCard.id) + 1;
+        
+        return (
+          <>
+            {/* Header text - minimal spacing */}
+            <Text
+              text={`Card ${currentCardNumber} of ${stack.cards.length}`}
+              fontSize={10}
+              fill="#666"
+              x={borderPadding + 1}
+              y={2}
+              fontFamily="Arial, sans-serif"
+              listening={false}
+            />
+          </>
+        );
+      })()}
+      
       {stack.cards.map((card, index) => {
         // Progressive scaling for rolodex perspective effect
         const totalCards = stack.cards.length;
@@ -115,10 +143,12 @@ const Stack = React.memo(({
         const scale = isTopCard ? 1.0 : Math.max(0.99 - depthFromTop * 0.01, 0.95);
         
         // Calculate offset to keep scaling centered around the card's center
+        // Add extra space for the "Card X of Y" header text
+        const headerTextSpace = stack.cards.length > 1 ? 8 : 0; // Extra space for header
         const cardWidth = card.width || CARD_WIDTH;
         const cardHeight = card.height || CARD_HEIGHT;
         const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
-        const yOffset = borderPadding + index * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
+        const yOffset = borderPadding + headerTextSpace + index * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
         
         return (
           <Group 
