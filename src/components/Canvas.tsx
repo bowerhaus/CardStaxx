@@ -23,6 +23,7 @@ interface CanvasProps {
   onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
+  onColorPickerOpen: (cardId: string, x: number, y: number) => void;
 }
 
 const Canvas = React.memo(({
@@ -39,6 +40,7 @@ const Canvas = React.memo(({
   onUpdateCard,
   onEditStart,
   onCardResize,
+  onColorPickerOpen,
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
@@ -76,6 +78,7 @@ const Canvas = React.memo(({
               onUpdateCard={onUpdateCard}
               onEditStart={onEditStart}
               onCardResize={onCardResize}
+              onColorPickerOpen={onColorPickerOpen}
             />
           ))}
         </Layer>

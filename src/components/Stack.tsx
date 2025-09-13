@@ -13,6 +13,7 @@ interface StackProps {
   onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
+  onColorPickerOpen: (cardId: string, x: number, y: number) => void;
 }
 
 const CARD_WIDTH = 200;
@@ -28,6 +29,7 @@ const Stack = React.memo(({
   onUpdateCard,
   onEditStart,
   onCardResize,
+  onColorPickerOpen,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
 
@@ -124,6 +126,7 @@ const Stack = React.memo(({
               card={card} 
               onEditStart={onEditStart}
               onResize={isTopCard ? handleCardResize : undefined} // Only top (most visible) card can be resized
+              onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
             />
           </Group>
         );

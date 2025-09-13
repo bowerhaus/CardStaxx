@@ -42,7 +42,18 @@ export const CARD_COLORS = {
   LIGHT_PINK: '#fce4ec',
   LIGHT_PURPLE: '#f3e5f5',
   LIGHT_GRAY: '#f5f5f5',
-  LIGHT_RED: '#ffebee'
+  LIGHT_RED: '#ffebee',
+  LIGHT_CYAN: '#e0f7fa',
+  LIGHT_INDIGO: '#e8eaf6',
+  LIGHT_TEAL: '#b2dfdb',
+  LIGHT_LIME: '#f9fbe7',
+  LIGHT_AMBER: '#fff8e1',
+  LIGHT_BROWN: '#efebe9',
+  LIGHT_DEEP_ORANGE: '#fbe9e7',
+  LIGHT_BLUE_GREY: '#eceff1',
+  LIGHT_LAVENDER: '#e1bee7',
+  LIGHT_MINT: '#c8e6c9',
+  LIGHT_PEACH: '#ffe0b2'
 } as const;
 
 export type CardColor = typeof CARD_COLORS[keyof typeof CARD_COLORS];
@@ -55,6 +66,29 @@ export const getCardColorName = (color: string): string => {
 
 export const isValidCardColor = (color: string): boolean => {
   return Object.values(CARD_COLORS).includes(color as CardColor) || /^#[0-9A-F]{6}$/i.test(color);
+};
+
+// Generate a darker shade of a color for headers
+export const getDarkerShade = (color: string): string => {
+  // If it's white (default), return a light gray
+  if (color === '#ffffff') {
+    return '#e0e0e0';
+  }
+  
+  // Convert hex to RGB
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  
+  // Make it 30% darker
+  const darkerR = Math.max(0, Math.floor(r * 0.7));
+  const darkerG = Math.max(0, Math.floor(g * 0.7));
+  const darkerB = Math.max(0, Math.floor(b * 0.7));
+  
+  // Convert back to hex
+  const toHex = (n: number) => n.toString(16).padStart(2, '0');
+  return `#${toHex(darkerR)}${toHex(darkerG)}${toHex(darkerB)}`;
 };
 
 // Global window API extensions

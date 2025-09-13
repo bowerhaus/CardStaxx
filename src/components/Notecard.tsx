@@ -7,6 +7,7 @@ interface NotecardProps {
   card: NotecardData;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
+  onColorPickerOpen?: (cardId: string, x: number, y: number) => void;
   isResizing?: boolean;
 }
 
@@ -15,7 +16,7 @@ const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isResizing = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -294,6 +295,45 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
             document.body.style.cursor = 'se-resize';
           }}
         />
+      )}
+
+      {/* Color picker button - permanent at bottom-right */}
+      {onColorPickerOpen && (
+        <>
+          <Text
+            text="🎨"
+            fontSize={16}
+            x={cardWidth - 30}
+            y={cardHeight - 25}
+            listening={false}
+          />
+          <Rect
+            x={cardWidth - 30}
+            y={cardHeight - 25}
+            width={20}
+            height={20}
+            fill="rgba(0,0,0,0)"
+            onMouseEnter={(e) => {
+              e.target.getStage()!.container().style.cursor = 'pointer';
+            }}
+            onMouseLeave={(e) => {
+              e.target.getStage()!.container().style.cursor = 'default';
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true; // Prevent propagation to card
+              const stage = e.target.getStage();
+              if (stage && groupRef.current) {
+                // Get absolute position for color picker placement
+                const transform = groupRef.current.getAbsoluteTransform();
+                const stageRect = stage.container().getBoundingClientRect();
+                const absolutePos = transform.point({ x: cardWidth - 30, y: cardHeight - 25 });
+                const screenX = stageRect.left + absolutePos.x;
+                const screenY = stageRect.top + absolutePos.y;
+                onColorPickerOpen(card.id, screenX, screenY);
+              }
+            }}
+          />
+        </>
       )}
     </Group>
   );

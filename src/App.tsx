@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay'; // Import new component
+import ColorPicker from './components/ColorPicker';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS } from './types';
 import Konva from 'konva'; // Import Konva for Node type
 
@@ -67,6 +68,10 @@ function App() {
   const [editingField, setEditingField] = useState<'title' | 'content' | 'date' | 'key' | 'tags' | null>(null);
   const [editingKonvaNode, setEditingKonvaNode] = useState<Konva.Node | null>(null);
   const [editingTextValue, setEditingTextValue] = useState<string>('');
+
+  // State for color picker
+  const [colorPickerCardId, setColorPickerCardId] = useState<string | null>(null);
+  const [colorPickerPosition, setColorPickerPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Auto-load last opened file on startup
   useEffect(() => {
@@ -464,6 +469,20 @@ function App() {
     }
   }, [setEditingCardId, setEditingField, setEditingKonvaNode, stacks, setEditingTextValue]);
 
+  const handleColorChange = (cardId: string, newColor: string) => {
+    handleUpdateCard(cardId, { backgroundColor: newColor });
+    setColorPickerCardId(null); // Close color picker after selection
+  };
+
+  const handleColorPickerOpen = (cardId: string, x: number, y: number) => {
+    setColorPickerCardId(cardId);
+    setColorPickerPosition({ x, y });
+  };
+
+  const handleColorPickerClose = () => {
+    setColorPickerCardId(null);
+  };
+
   const handleEditBlur = () => {
     if (editingCardId && editingField) {
       const currentCard = stacks.flatMap(s => s.cards).find(c => c.id === editingCardId);
@@ -568,6 +587,7 @@ function App() {
         onUpdateCard={handleUpdateCard} // Pass onUpdateCard
         onEditStart={handleEditStart} // Pass onEditStart
         onCardResize={handleCardResize} // Pass onCardResize
+        onColorPickerOpen={handleColorPickerOpen} // Pass onColorPickerOpen
       />
       {editingCardId && editingField && editingKonvaNode && (
         <EditableTextOverlay
@@ -581,6 +601,15 @@ function App() {
           fieldType={editingField}
           onChange={setEditingTextValue}
           onBlur={handleEditBlur}
+        />
+      )}
+      {colorPickerCardId && (
+        <ColorPicker
+          selectedColor={stacks.flatMap(s => s.cards).find(c => c.id === colorPickerCardId)?.backgroundColor || CARD_COLORS.DEFAULT}
+          onColorSelect={(color) => handleColorChange(colorPickerCardId, color)}
+          onClose={handleColorPickerClose}
+          x={colorPickerPosition.x}
+          y={colorPickerPosition.y}
         />
       )}
     </div>
