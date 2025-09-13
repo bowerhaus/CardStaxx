@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage, Layer, Line, Circle } from 'react-konva'; // Import Circle
+import { Stage, Layer, Line, Circle, Text, Group, Rect } from 'react-konva'; // Import Circle, Text, Group, Rect
 import { StackData, ConnectionData, NotecardData } from '../types';
 import Stack from './Stack';
 import Konva from 'konva'; // Import Konva for event types
@@ -25,8 +25,11 @@ interface CanvasProps {
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
+  onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node) => void;
+  onConnectionDelete: (connectionId: string) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  editingConnectionId?: string | null;
   highlightedCardIds?: Set<string>;
 }
 
@@ -46,8 +49,11 @@ const Canvas = React.memo(({
   onCardResize,
   onColorPickerOpen,
   onCardDelete,
+  onConnectionLabelEdit,
+  onConnectionDelete,
   editingCardId,
   editingField,
+  editingConnectionId,
   highlightedCardIds,
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
@@ -116,15 +122,72 @@ const Canvas = React.memo(({
             const toX = toStack.x + toWidth / 2;
             const toY = toStack.y + toStackHeight / 2;
 
+            // Calculate midpoint for label positioning
+            const midX = (fromX + toX) / 2;
+            const midY = (fromY + toY) / 2;
+
             return (
-              <Line
-                key={connection.id}
-                points={[fromX, fromY, toX, toY]}
-                stroke="grey" // Changed to grey
-                strokeWidth={1} // Changed to 1
-                opacity={0.75} // Added opacity
-                tension={0} // Straight line
-              />
+              <Group key={connection.id}>
+                <Line
+                  points={[fromX, fromY, toX, toY]}
+                  stroke="grey"
+                  strokeWidth={1}
+                  opacity={0.75}
+                  tension={0}
+                />
+                
+                {/* Connection Label */}
+                <Group
+                  x={midX}
+                  y={midY}
+                >
+                  {/* Background rectangle for better readability */}
+                  <Rect
+                    x={-(connection.label ? Math.max(connection.label.length * 5 + 8, 24) : 24) / 2}
+                    y={-9}
+                    width={connection.label ? Math.max(connection.label.length * 5 + 8, 24) : 24}
+                    height={18}
+                    fill="white"
+                    stroke="grey"
+                    strokeWidth={1}
+                    opacity={0.9}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                  />
+                  
+                  {/* Label text */}
+                  <Text
+                    text={connection.label || '+'}
+                    fontSize={10}
+                    fontFamily="Arial"
+                    fontStyle="normal"
+                    fill={connection.label ? "black" : "grey"}
+                    align="center"
+                    verticalAlign="middle"
+                    offsetX={connection.label ? (connection.label.length * 2.5) : 3}
+                    offsetY={5}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                  />
+                  
+                  {/* Delete button (small X) - shown when editing */}
+                  <Text
+                    text="×"
+                    fontSize={12}
+                    fontFamily="Arial"
+                    fill="red"
+                    align="center"
+                    verticalAlign="middle"
+                    offsetX={6}
+                    offsetY={-12}
+                    onClick={(e) => {
+                      e.cancelBubble = true;
+                      onConnectionDelete(connection.id);
+                    }}
+                    visible={editingConnectionId === connection.id}
+                  />
+                </Group>
+              </Group>
             );
           })}
 

@@ -78,6 +78,9 @@ function App() {
   const [editingKonvaNode, setEditingKonvaNode] = useState<Konva.Node | null>(null);
   const [editingTextValue, setEditingTextValue] = useState<string>('');
 
+  // State for connection editing
+  const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
+
   // State for color picker
   const [colorPickerCardId, setColorPickerCardId] = useState<string | null>(null);
   const [colorPickerPosition, setColorPickerPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -565,6 +568,34 @@ function App() {
     console.log('--- End handleConnectionDragEnd ---');
   };
 
+  const handleConnectionLabelEdit = (connectionId: string, konvaNode: Konva.Node) => {
+    setEditingConnectionId(connectionId);
+    
+    // Find the connection and set up editing
+    const connection = connections.find(c => c.id === connectionId);
+    if (connection) {
+      setEditingTextValue(connection.label || '');
+      setEditingKonvaNode(konvaNode);
+    }
+  };
+
+  const handleConnectionDelete = (connectionId: string) => {
+    setConnections(prevConnections => 
+      prevConnections.filter(conn => conn.id !== connectionId)
+    );
+    setHasUnsavedChanges(true);
+  };
+
+  const handleConnectionUpdate = (connectionId: string, label: string) => {
+    setConnections(prevConnections => 
+      prevConnections.map(conn => 
+        conn.id === connectionId ? { ...conn, label: label.trim() || undefined } : conn
+      )
+    );
+    setHasUnsavedChanges(true);
+    setEditingConnectionId(null);
+  };
+
   const handleUpdateCard = (cardId: string, updates: Partial<NotecardData>) => {
     setStacks(
       stacks.map(stack => ({
@@ -656,9 +687,13 @@ function App() {
 
   const handleDeleteConfirm = () => {
     if (deleteConfirmCardId) {
-      // Find and remove the card from its stack
+      // Find and remove the card from its stack, tracking which stacks get deleted
+      let deletedStackIds: string[] = [];
+      
       setStacks(prevStacks => {
-        return prevStacks.map(stack => {
+        const originalStackIds = new Set(prevStacks.map(s => s.id));
+        
+        const updatedStacks = prevStacks.map(stack => {
           // Check if this stack contains the card to delete
           const cardIndex = stack.cards.findIndex(card => card.id === deleteConfirmCardId);
           
@@ -675,7 +710,22 @@ function App() {
           
           return stack;
         }).filter(stack => stack.cards.length > 0); // Remove empty stacks
+        
+        // Track which stacks were deleted
+        const remainingStackIds = new Set(updatedStacks.map(s => s.id));
+        deletedStackIds = Array.from(originalStackIds).filter(id => !remainingStackIds.has(id));
+        
+        return updatedStacks;
       });
+      
+      // Clean up connections that reference deleted stacks
+      if (deletedStackIds.length > 0) {
+        setConnections(prevConnections => 
+          prevConnections.filter(conn => 
+            !deletedStackIds.includes(conn.from) && !deletedStackIds.includes(conn.to)
+          )
+        );
+      }
       
       setHasUnsavedChanges(true);
     }
@@ -736,9 +786,14 @@ function App() {
           handleUpdateCard(editingCardId, updates);
         }
       }
+    } else if (editingConnectionId) {
+      // Handle connection label editing
+      handleConnectionUpdate(editingConnectionId, editingTextValue);
     }
+    
     setEditingCardId(null);
     setEditingField(null);
+    setEditingConnectionId(null);
     setEditingKonvaNode(null);
     setEditingTextValue('');
   };
@@ -752,15 +807,29 @@ function App() {
     const stageRect = stage.container().getBoundingClientRect();
     const nodeAbsolutePosition = editingKonvaNode.getAbsolutePosition();
 
-    // The Text nodes already have internal padding, so we need to align with that
-    // The padding is already built into the Text node's rendering
+    // Handle connection editing separately
+    if (editingConnectionId) {
+      const labelText = editingTextValue || 'Label';
+      const minWidth = Math.max(labelText.length * 8 + 16, 80); // Minimum 80px width
+      
+      const calculatedPos = {
+        x: stageRect.left + nodeAbsolutePosition.x - minWidth / 2,
+        y: stageRect.top + nodeAbsolutePosition.y - 9,
+        width: minWidth,
+        height: 18,
+      };
+      console.log('Connection Overlay Position:', calculatedPos);
+      return calculatedPos;
+    }
+
+    // Handle card field editing
     const calculatedPos = {
       x: stageRect.left + nodeAbsolutePosition.x + TITLE_PADDING,
       y: stageRect.top + nodeAbsolutePosition.y + (editingField === 'title' ? TITLE_PADDING : TITLE_PADDING),
       width: editingKonvaNode.width() - TITLE_PADDING * 2,
       height: editingField === 'title' ? 20 : editingKonvaNode.height() - TITLE_PADDING * 2,
     };
-    console.log('Calculated Overlay Position:', calculatedPos, 'Field:', editingField);
+    console.log('Card Overlay Position:', calculatedPos, 'Field:', editingField);
     return calculatedPos;
   };
 
@@ -846,6 +915,8 @@ function App() {
         onConnectionDragMove={handleConnectionDragMove}
         onConnectionDragEnd={handleConnectionDragEnd}
         onConnectionDragStart={handleConnectionDragStart}
+        onConnectionLabelEdit={handleConnectionLabelEdit}
+        onConnectionDelete={handleConnectionDelete}
         onUpdateCard={handleUpdateCard} // Pass onUpdateCard
         onEditStart={handleEditStart} // Pass onEditStart
         onCardResize={handleCardResize} // Pass onCardResize
@@ -853,6 +924,7 @@ function App() {
         onCardDelete={handleCardDeleteRequest} // Pass delete handler
         editingCardId={editingCardId} // Pass editing state
         editingField={editingField} // Pass editing field
+        editingConnectionId={editingConnectionId} // Pass connection editing state
         highlightedCardIds={highlightedCardIds} // Pass highlighted cards
       />
       {/* Markdown renderers for card content */}
@@ -869,7 +941,7 @@ function App() {
           />
         ) : null
       )}
-      {editingCardId && editingField && editingKonvaNode && (
+      {((editingCardId && editingField) || editingConnectionId) && editingKonvaNode && (
         <EditableTextOverlay
           x={overlayPos.x}
           y={overlayPos.y}
@@ -878,7 +950,7 @@ function App() {
           value={editingTextValue}
           isTextArea={editingField === 'content'}
           inputType={editingField === 'date' ? 'date' : 'text'}
-          fieldType={editingField}
+          fieldType={editingField || 'connection'}
           onChange={setEditingTextValue}
           onBlur={handleEditBlur}
         />
