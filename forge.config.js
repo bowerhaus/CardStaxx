@@ -36,6 +36,9 @@ module.exports = {
               html: './public/index.html',
               js: './src/index.tsx',
               name: 'main_window',
+              preload: {
+                js: './electron/preload.ts',
+              },
             },
           ],
         },

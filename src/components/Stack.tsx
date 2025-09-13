@@ -2,7 +2,7 @@ import React from 'react';
 import { Group, Rect } from 'react-konva';
 import Konva from 'konva';
 import Notecard from './Notecard';
-import { StackData } from '../types';
+import { StackData, NotecardData } from '../types';
 
 interface StackProps {
   stack: StackData;
@@ -10,8 +10,9 @@ interface StackProps {
   onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
-  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void; // Added
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void; // Added
+  onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
+  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 
 const CARD_WIDTH = 200;
@@ -26,12 +27,15 @@ const Stack = React.memo(({
   onClick,
   onUpdateCard,
   onEditStart,
+  onCardResize,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
 
-  const handleNotecardEditStart = (field: 'title' | 'content', konvaNode: Konva.Node) => {
-    onEditStart(stack.cards[0].id, field, konvaNode); // Pass the ID of the top card in the stack
+
+  const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
+    onCardResize(cardId, newWidth, newHeight);
   };
+
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
     e.target.moveToTop();
@@ -58,6 +62,16 @@ const Stack = React.memo(({
     return null; // Don't render anything if the stack is empty
   }
 
+  // Calculate stack dimensions based on the top card (which might be resized)
+  const topCard = stack.cards[0];
+  const baseCardWidth = topCard.width || CARD_WIDTH;
+  const baseCardHeight = topCard.height || CARD_HEIGHT;
+  
+  // Make stack border slightly larger than the top card
+  const borderPadding = 10;
+  const stackWidth = baseCardWidth + borderPadding * 2;
+  const stackHeight = baseCardHeight + (stack.cards.length - 1) * HEADER_OFFSET + borderPadding * 2;
+
   return (
     <Group
       name="stack-group" // Added name for identification
@@ -73,8 +87,8 @@ const Stack = React.memo(({
     >
       {/* Bounding box for the whole stack */}
       <Rect
-        width={CARD_WIDTH}
-        height={CARD_HEIGHT + (stack.cards.length - 1) * HEADER_OFFSET}
+        width={stackWidth}
+        height={stackHeight}
         fill="rgba(0,0,0,0)" // Added transparent fill for hit detection
         stroke="rgba(0,0,0,0.1)"
         strokeWidth={1}
@@ -83,11 +97,37 @@ const Stack = React.memo(({
         shadowBlur={10}
         shadowOpacity={0.3}
       />
-      {stack.cards.map((card, index) => (
-        <Group key={card.id} y={index * HEADER_OFFSET}>
-          <Notecard card={card} onEditStart={handleNotecardEditStart} />
-        </Group>
-      ))}
+      {stack.cards.map((card, index) => {
+        // Progressive scaling for rolodex perspective effect
+        const totalCards = stack.cards.length;
+        const isTopCard = index === totalCards - 1; // Last card is the "top" visible card
+        const depthFromTop = totalCards - 1 - index; // How far back from the top visible card
+        
+        // Progressive scaling (top visible card largest, cards get smaller going back) - very subtle
+        const scale = isTopCard ? 1.0 : Math.max(0.99 - depthFromTop * 0.01, 0.95);
+        
+        // Calculate offset to keep scaling centered around the card's center
+        const cardWidth = card.width || CARD_WIDTH;
+        const cardHeight = card.height || CARD_HEIGHT;
+        const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
+        const yOffset = borderPadding + index * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
+        
+        return (
+          <Group 
+            key={card.id} 
+            x={xOffset}
+            y={yOffset}
+            scaleX={scale}
+            scaleY={scale}
+          >
+            <Notecard 
+              card={card} 
+              onEditStart={onEditStart}
+              onResize={isTopCard ? handleCardResize : undefined} // Only top (most visible) card can be resized
+            />
+          </Group>
+        );
+      })}
     </Group>
   );
 });

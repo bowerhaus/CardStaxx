@@ -1,6 +1,6 @@
 import React from 'react';
 import { Stage, Layer, Line, Circle } from 'react-konva'; // Import Circle
-import { StackData, ConnectionData } from '../types';
+import { StackData, ConnectionData, NotecardData } from '../types';
 import Stack from './Stack';
 import Konva from 'konva'; // Import Konva for event types
 
@@ -15,13 +15,14 @@ interface CanvasProps {
   isConnecting: boolean;
   currentConnection: { fromStackId: string; toX: number; toY: number } | null;
   onStackDragEnd: (id: string, x: number, y: number) => void;
-  onStackDragMove: (id: string, x: number, y: number) => void; // Added
+  onStackDragMove: (id: string, x: number, y: number) => void;
   onStackWheel: (id: string, deltaY: number) => void;
   onConnectionDragStart: (fromStackId: string, startX: number, startY: number) => void;
   onConnectionDragMove: (currentX: number, currentY: number) => void;
   onConnectionDragEnd: (endX: number, endY: number) => void;
-  onUpdateCard: (cardId: string, newTitle: string, newContent: string) => void; // Added
-  onEditStart: (cardId: string, field: 'title' | 'content', konvaNode: Konva.Node) => void; // Added
+  onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
+  onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
+  onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
 }
 
 const Canvas = React.memo(({
@@ -37,6 +38,7 @@ const Canvas = React.memo(({
   onConnectionDragEnd,
   onUpdateCard,
   onEditStart,
+  onCardResize,
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
@@ -73,6 +75,7 @@ const Canvas = React.memo(({
               onClick={() => {}} // onClick is no longer used for connections
               onUpdateCard={onUpdateCard}
               onEditStart={onEditStart}
+              onCardResize={onCardResize}
             />
           ))}
         </Layer>
@@ -85,10 +88,18 @@ const Canvas = React.memo(({
 
             if (!fromStack || !toStack) return null;
 
-            const fromX = fromStack.x + CARD_WIDTH / 2;
-            const fromY = fromStack.y + CARD_HEIGHT / 2;
-            const toX = toStack.x + CARD_WIDTH / 2;
-            const toY = toStack.y + CARD_HEIGHT / 2;
+            // Use dynamic card dimensions for connection points (stack center)
+            const fromTopCard = fromStack.cards[0];
+            const fromWidth = fromTopCard?.width || CARD_WIDTH;
+            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
+            const fromX = fromStack.x + fromWidth / 2;
+            const fromY = fromStack.y + fromStackHeight / 2;
+
+            const toTopCard = toStack.cards[0];
+            const toWidth = toTopCard?.width || CARD_WIDTH;
+            const toStackHeight = (toTopCard?.height || CARD_HEIGHT) + (toStack.cards.length - 1) * HEADER_OFFSET;
+            const toX = toStack.x + toWidth / 2;
+            const toY = toStack.y + toStackHeight / 2;
 
             return (
               <Line
@@ -103,25 +114,37 @@ const Canvas = React.memo(({
           })}
 
           {/* Dynamic Connection Line */}
-          {isConnecting && currentConnection && (
-            <Line
-              points={[
-                stacks.find(s => s.id === currentConnection.fromStackId)!.x + CARD_WIDTH / 2,
-                stacks.find(s => s.id === currentConnection.fromStackId)!.y + CARD_HEIGHT / 2,
-                currentConnection.toX,
-                currentConnection.toY,
-              ]}
-              stroke="grey" // Changed to grey
-              strokeWidth={1} // Changed to 1
-              dash={[5, 5]} // Changed to dotted
-              opacity={0.75} // Added opacity
-            />
-          )}
+          {isConnecting && currentConnection && (() => {
+            const fromStack = stacks.find(s => s.id === currentConnection.fromStackId);
+            if (!fromStack) return null;
+            
+            const fromTopCard = fromStack.cards[0];
+            const fromWidth = fromTopCard?.width || CARD_WIDTH;
+            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
+            
+            return (
+              <Line
+                points={[
+                  fromStack.x + fromWidth / 2,
+                  fromStack.y + fromStackHeight / 2,
+                  currentConnection.toX,
+                  currentConnection.toY,
+                ]}
+                stroke="grey" // Changed to grey
+                strokeWidth={1} // Changed to 1
+                dash={[5, 5]} // Changed to dotted
+                opacity={0.75} // Added opacity
+              />
+            );
+          })()}
 
           {/* Connection Handles */}
           {stacks.map((stack) => {
-            const handleX = stack.x + CARD_WIDTH / 2;
-            const handleY = stack.y + (CARD_HEIGHT + (stack.cards.length - 1) * HEADER_OFFSET) / 2;
+            const topCard = stack.cards[0];
+            const stackWidth = topCard?.width || CARD_WIDTH;
+            const stackHeight = (topCard?.height || CARD_HEIGHT) + (stack.cards.length - 1) * HEADER_OFFSET;
+            const handleX = stack.x + stackWidth / 2;
+            const handleY = stack.y + stackHeight / 2;
             return (
               <Circle
                 key={`handle-${stack.id}`}
