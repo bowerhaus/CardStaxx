@@ -91,6 +91,20 @@ export const getDarkerShade = (color: string): string => {
   return `#${toHex(darkerR)}${toHex(darkerG)}${toHex(darkerB)}`;
 };
 
+// Search and filtering interfaces
+export interface SearchFilters {
+  searchText: string;
+  selectedTags: string[];
+  focusedKey?: string;
+}
+
+export interface SearchResult {
+  cardId: string;
+  stackId: string;
+  matchType: 'title' | 'content' | 'tags' | 'key';
+  matchText: string;
+}
+
 // Global window API extensions
 declare global {
   interface Window {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NotecardData } from '../types';
+import { NotecardData, SearchFilters, SearchResult } from '../types';
 
 interface SidebarProps {
   onCreateCard: (cardData?: Partial<NotecardData>) => void;
@@ -9,9 +9,35 @@ interface SidebarProps {
   onNew: () => void;
   hasUnsavedChanges: boolean;
   currentFilePath: string | null;
+  searchFilters: SearchFilters;
+  onSearchChange: (searchText: string) => void;
+  onTagFilterChange: (tags: string[]) => void;
+  onKeyFilterChange: (key?: string) => void;
+  availableTags: string[];
+  availableKeys: string[];
+  searchResults: SearchResult[];
+  totalCards: number;
+  filteredCards: number;
 }
 
-const Sidebar = ({ onCreateCard, onSave, onSaveAs, onLoad, onNew, hasUnsavedChanges, currentFilePath }: SidebarProps) => {
+const Sidebar = ({ 
+  onCreateCard, 
+  onSave, 
+  onSaveAs, 
+  onLoad, 
+  onNew, 
+  hasUnsavedChanges, 
+  currentFilePath,
+  searchFilters,
+  onSearchChange,
+  onTagFilterChange,
+  onKeyFilterChange,
+  availableTags,
+  availableKeys,
+  searchResults,
+  totalCards,
+  filteredCards
+}: SidebarProps) => {
   const getFileName = () => {
     if (!currentFilePath) return 'Untitled';
     return currentFilePath.split('/').pop()?.replace('.cardstaxx', '') || 'Untitled';
@@ -29,10 +55,28 @@ const Sidebar = ({ onCreateCard, onSave, onSaveAs, onLoad, onNew, hasUnsavedChan
     onCreateCard(cardData);
   };
 
+  const handleTagToggle = (tag: string) => {
+    const newTags = searchFilters.selectedTags.includes(tag)
+      ? searchFilters.selectedTags.filter(t => t !== tag)
+      : [...searchFilters.selectedTags, tag];
+    onTagFilterChange(newTags);
+  };
+
+  const handleKeySelect = (key: string) => {
+    const newKey = searchFilters.focusedKey === key ? undefined : key;
+    onKeyFilterChange(newKey);
+  };
+
+  const clearAllFilters = () => {
+    onSearchChange('');
+    onTagFilterChange([]);
+    onKeyFilterChange(undefined);
+  };
+
   return (
-    <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '10px', height: '100vh', backgroundColor: '#f7f7f7' }}>
-      <h2>CardStaxx</h2>
-      <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
+    <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '10px', height: '100vh', backgroundColor: '#f7f7f7', overflowY: 'auto', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+      <h2 style={{ fontFamily: 'inherit' }}>CardStaxx</h2>
+      <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', fontFamily: 'inherit' }}>
         {getFileName()}{hasUnsavedChanges ? ' *' : ''}
       </div>
       
@@ -50,17 +94,176 @@ const Sidebar = ({ onCreateCard, onSave, onSaveAs, onLoad, onNew, hasUnsavedChan
         New Card
       </button>
       <hr />
-      {/* Connection buttons removed */}
-      <button>Create Timeline</button>
-      <hr />
-      <input type="search" placeholder="Search cards..." style={{ width: '100%' }} />
-      <div>
-        <h4>Filter by Tags</h4>
-        {/* Tag list will go here */}
+      
+      {/* Search Section */}
+      <div style={{ marginBottom: '10px' }}>
+        <input 
+          type="search" 
+          placeholder="Search cards..." 
+          style={{ width: '100%', marginBottom: '5px' }}
+          value={searchFilters.searchText}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+        {(searchFilters.searchText || searchFilters.selectedTags.length > 0 || searchFilters.focusedKey) && (
+          <button 
+            onClick={clearAllFilters}
+            style={{ fontSize: '11px', padding: '2px 6px' }}
+          >
+            Clear All Filters
+          </button>
+        )}
       </div>
+
+      {/* Statistics */}
+      <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', fontFamily: 'inherit' }}>
+        Showing {filteredCards} of {totalCards} cards
+        {searchResults.length > 0 && (
+          <div>{searchResults.length} search matches</div>
+        )}
+      </div>
+
+      {/* Key Filter Section */}
+      <div style={{ marginBottom: '10px' }}>
+        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Key Cloud</h4>
+        <div style={{ 
+          maxHeight: '120px', 
+          overflowY: 'auto', 
+          border: '1px solid #ddd', 
+          padding: '8px', 
+          backgroundColor: '#fff',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '4px',
+          alignItems: 'flex-start'
+        }}>
+          {availableKeys.length === 0 ? (
+            <div style={{ fontSize: '12px', color: '#999', width: '100%', fontFamily: 'inherit' }}>No keys available</div>
+          ) : (
+            availableKeys.map(key => {
+              const isSelected = searchFilters.focusedKey === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleKeySelect(key)}
+                  style={{
+                    fontSize: '11px',
+                    padding: '4px 8px',
+                    borderRadius: '4px', // Rectangle shape (less rounded than pills)
+                    border: isSelected ? 'none' : '1px solid #ccc',
+                    backgroundColor: isSelected ? '#28a745' : '#f8f9fa', // Green for keys vs blue for tags
+                    color: isSelected ? 'white' : '#333',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    boxShadow: isSelected ? '0 2px 4px rgba(40,167,69,0.3)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.target.style.backgroundColor = '#e9ecef';
+                      e.target.style.borderColor = '#28a745';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.target.style.backgroundColor = '#f8f9fa';
+                      e.target.style.borderColor = '#ccc';
+                    }
+                  }}
+                >
+                  🔑 {key}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Tag Filter Section */}
+      <div style={{ marginBottom: '10px' }}>
+        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Tag Cloud</h4>
+        <div style={{ 
+          maxHeight: '150px', 
+          overflowY: 'auto', 
+          border: '1px solid #ddd', 
+          padding: '8px', 
+          backgroundColor: '#fff',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '4px',
+          alignItems: 'flex-start'
+        }}>
+          {availableTags.length === 0 ? (
+            <div style={{ fontSize: '12px', color: '#999', width: '100%', fontFamily: 'inherit' }}>No tags available</div>
+          ) : (
+            availableTags.map(tag => {
+              const isSelected = searchFilters.selectedTags.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => handleTagToggle(tag)}
+                  style={{
+                    fontSize: '11px',
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    border: isSelected ? 'none' : '1px solid #ccc',
+                    backgroundColor: isSelected ? '#007bff' : '#f8f9fa',
+                    color: isSelected ? 'white' : '#333',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    boxShadow: isSelected ? '0 2px 4px rgba(0,123,255,0.3)' : 'none'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.target.style.backgroundColor = '#e9ecef';
+                      e.target.style.borderColor = '#007bff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.target.style.backgroundColor = '#f8f9fa';
+                      e.target.style.borderColor = '#ccc';
+                    }
+                  }}
+                >
+                  🏷️ {tag}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Search Results */}
+      {searchResults.length > 0 && (
+        <div style={{ marginBottom: '10px' }}>
+          <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Search Results</h4>
+          <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff' }}>
+            {searchResults.map((result, index) => (
+              <div key={`${result.cardId}-${result.matchType}-${index}`} style={{ marginBottom: '5px', padding: '3px', border: '1px solid #eee', borderRadius: '3px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#666', fontFamily: 'inherit' }}>
+                  {result.matchType.toUpperCase()} MATCH
+                </div>
+                <div style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'inherit' }}>
+                  {result.matchText}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <hr />
+      <button style={{ fontFamily: 'inherit' }}>Create Timeline</button>
       <hr />
       <div>
-        <h4>Canvas Zoom</h4>
+        <h4 style={{ fontFamily: 'inherit' }}>Canvas Zoom</h4>
         {/* Zoom controls will go here */}
       </div>
     </div>

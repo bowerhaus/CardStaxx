@@ -5,7 +5,7 @@ import EditableTextOverlay from './components/EditableTextOverlay'; // Import ne
 import ColorPicker from './components/ColorPicker';
 import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
-import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS } from './types';
+import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS, SearchFilters, SearchResult } from './types';
 import Konva from 'konva'; // Import Konva for Node type
 
 // Data migration utility for backward compatibility
@@ -86,6 +86,157 @@ function App() {
   const [deleteConfirmCardId, setDeleteConfirmCardId] = useState<string | null>(null);
   const [deleteConfirmPosition, setDeleteConfirmPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // State for search and filtering
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({
+    searchText: '',
+    selectedTags: [],
+    focusedKey: undefined
+  });
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [highlightedCardIds, setHighlightedCardIds] = useState<Set<string>>(new Set());
+
+  // Search and filtering functions
+  const performSearch = useCallback((filters: SearchFilters): SearchResult[] => {
+    const results: SearchResult[] = [];
+    const { searchText, selectedTags, focusedKey } = filters;
+    
+    stacks.forEach(stack => {
+      stack.cards.forEach(card => {
+        // Search text matching
+        if (searchText.trim()) {
+          const searchLower = searchText.toLowerCase();
+          
+          // Title match
+          if (card.title.toLowerCase().includes(searchLower)) {
+            results.push({
+              cardId: card.id,
+              stackId: stack.id,
+              matchType: 'title',
+              matchText: card.title
+            });
+          }
+          
+          // Content match
+          if (card.content.toLowerCase().includes(searchLower)) {
+            results.push({
+              cardId: card.id,
+              stackId: stack.id,
+              matchType: 'content',
+              matchText: card.content.substring(0, 100) + '...'
+            });
+          }
+          
+          // Tags match
+          if (card.tags?.some(tag => tag.toLowerCase().includes(searchLower))) {
+            const matchingTags = card.tags.filter(tag => tag.toLowerCase().includes(searchLower));
+            results.push({
+              cardId: card.id,
+              stackId: stack.id,
+              matchType: 'tags',
+              matchText: matchingTags.join(', ')
+            });
+          }
+          
+          // Key match
+          if (card.key?.toLowerCase().includes(searchLower)) {
+            results.push({
+              cardId: card.id,
+              stackId: stack.id,
+              matchType: 'key',
+              matchText: card.key
+            });
+          }
+        }
+      });
+    });
+    
+    return results;
+  }, [stacks]);
+
+  const getFilteredStacks = useCallback((): StackData[] => {
+    const { searchText, selectedTags, focusedKey } = searchFilters;
+    
+    // If no filters are active, return all stacks
+    if (!searchText.trim() && selectedTags.length === 0 && !focusedKey) {
+      return stacks;
+    }
+    
+    return stacks.map(stack => ({
+      ...stack,
+      cards: stack.cards.filter(card => {
+        // Text search filter
+        if (searchText.trim()) {
+          const searchLower = searchText.toLowerCase();
+          const matchesText = 
+            card.title.toLowerCase().includes(searchLower) ||
+            card.content.toLowerCase().includes(searchLower) ||
+            card.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
+            card.key?.toLowerCase().includes(searchLower);
+          
+          if (!matchesText) return false;
+        }
+        
+        // Tag filter (AND logic)
+        if (selectedTags.length > 0) {
+          const cardTags = card.tags || [];
+          const hasAllTags = selectedTags.every(tag => 
+            cardTags.some(cardTag => cardTag.toLowerCase() === tag.toLowerCase())
+          );
+          if (!hasAllTags) return false;
+        }
+        
+        // Key filter
+        if (focusedKey && card.key?.toLowerCase() !== focusedKey.toLowerCase()) {
+          return false;
+        }
+        
+        return true;
+      })
+    })).filter(stack => stack.cards.length > 0); // Remove empty stacks
+  }, [stacks, searchFilters]);
+
+  const getAllTags = useCallback((): string[] => {
+    const tagSet = new Set<string>();
+    stacks.forEach(stack => {
+      stack.cards.forEach(card => {
+        if (card.tags) {
+          card.tags.forEach(tag => tagSet.add(tag.toLowerCase()));
+        }
+      });
+    });
+    return Array.from(tagSet).sort();
+  }, [stacks]);
+
+  const getAllKeys = useCallback((): string[] => {
+    const keySet = new Set<string>();
+    stacks.forEach(stack => {
+      stack.cards.forEach(card => {
+        if (card.key) {
+          keySet.add(card.key.toLowerCase());
+        }
+      });
+    });
+    return Array.from(keySet).sort();
+  }, [stacks]);
+
+  // Update search results when filters or stacks change
+  useEffect(() => {
+    const results = performSearch(searchFilters);
+    setSearchResults(results);
+    setHighlightedCardIds(new Set(results.map(r => r.cardId)));
+  }, [searchFilters, performSearch]);
+
+  const handleSearchChange = (searchText: string) => {
+    setSearchFilters(prev => ({ ...prev, searchText }));
+  };
+
+  const handleTagFilterChange = (tags: string[]) => {
+    setSearchFilters(prev => ({ ...prev, selectedTags: tags }));
+  };
+
+  const handleKeyFilterChange = (key?: string) => {
+    setSearchFilters(prev => ({ ...prev, focusedKey: key }));
+  };
 
   // Auto-load last opened file on startup
   useEffect(() => {
@@ -627,8 +778,9 @@ function App() {
     }> = [];
 
     const SIDEBAR_WIDTH = 270; // Match the Canvas component sidebar offset
+    const currentStacks = getFilteredStacks();
 
-    stacks.forEach(stack => {
+    currentStacks.forEach(stack => {
       if (stack.cards && stack.cards.length > 0) {
         // Only render markdown for the top (most visible) card in each stack
         const topCard = stack.cards[stack.cards.length - 1];
@@ -659,6 +811,9 @@ function App() {
   };
 
   const cardPositions = getCardScreenPositions();
+  const filteredStacks = getFilteredStacks();
+  const availableTags = getAllTags();
+  const availableKeys = getAllKeys();
 
   return (
     <div style={{ display: 'flex' }}>
@@ -670,9 +825,18 @@ function App() {
         onNew={newWorkspace}
         hasUnsavedChanges={hasUnsavedChanges}
         currentFilePath={currentFilePath}
+        searchFilters={searchFilters}
+        onSearchChange={handleSearchChange}
+        onTagFilterChange={handleTagFilterChange}
+        onKeyFilterChange={handleKeyFilterChange}
+        availableTags={availableTags}
+        availableKeys={availableKeys}
+        searchResults={searchResults}
+        totalCards={stacks.reduce((count, stack) => count + stack.cards.length, 0)}
+        filteredCards={filteredStacks.reduce((count, stack) => count + stack.cards.length, 0)}
       />
       <Canvas
-        stacks={stacks}
+        stacks={filteredStacks}
         connections={connections}
         isConnecting={isConnecting}
         currentConnection={currentConnection}
@@ -689,6 +853,7 @@ function App() {
         onCardDelete={handleCardDeleteRequest} // Pass delete handler
         editingCardId={editingCardId} // Pass editing state
         editingField={editingField} // Pass editing field
+        highlightedCardIds={highlightedCardIds} // Pass highlighted cards
       />
       {/* Markdown renderers for card content */}
       {cardPositions.map(({ card, x, y, width, height, isEditing }) => 

@@ -17,6 +17,7 @@ interface StackProps {
   onCardDelete: (cardId: string, x: number, y: number) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  highlightedCardIds?: Set<string>;
 }
 
 const CARD_WIDTH = 200;
@@ -36,6 +37,7 @@ const Stack = React.memo(({
   onCardDelete,
   editingCardId,
   editingField,
+  highlightedCardIds,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
 
@@ -165,6 +167,7 @@ const Stack = React.memo(({
               onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
               onDelete={isTopCard ? onCardDelete : undefined} // Only top card can be deleted
               isEditing={editingCardId === card.id && editingField === 'content'} // Pass editing state
+              isHighlighted={highlightedCardIds?.has(card.id) || false} // Pass highlighting state
             />
           </Group>
         );

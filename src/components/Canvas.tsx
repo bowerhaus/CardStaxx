@@ -27,6 +27,7 @@ interface CanvasProps {
   onCardDelete: (cardId: string, x: number, y: number) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  highlightedCardIds?: Set<string>;
 }
 
 const Canvas = React.memo(({
@@ -47,6 +48,7 @@ const Canvas = React.memo(({
   onCardDelete,
   editingCardId,
   editingField,
+  highlightedCardIds,
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
@@ -88,6 +90,7 @@ const Canvas = React.memo(({
               onCardDelete={onCardDelete}
               editingCardId={editingCardId}
               editingField={editingField}
+              highlightedCardIds={highlightedCardIds}
             />
           ))}
         </Layer>

@@ -11,6 +11,7 @@ interface NotecardProps {
   onDelete?: (cardId: string, x: number, y: number) => void;
   isEditing?: boolean;
   isResizing?: boolean;
+  isHighlighted?: boolean;
 }
 
 const CARD_WIDTH = 200;
@@ -18,7 +19,7 @@ const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, isEditing = false, isResizing = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, isEditing = false, isResizing = false, isHighlighted = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -51,11 +52,12 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, is
         width={cardWidth}
         height={cardHeight}
         fill={card.backgroundColor || CARD_COLORS.DEFAULT}
-        stroke="black"
-        strokeWidth={1}
+        stroke={isHighlighted ? "gold" : "black"}
+        strokeWidth={isHighlighted ? 3 : 1}
         cornerRadius={5}
-        shadowBlur={5}
+        shadowBlur={isHighlighted ? 10 : 5}
         shadowOpacity={0.5}
+        shadowColor={isHighlighted ? "gold" : "black"}
       />
       <Text
         ref={titleTextRef}
