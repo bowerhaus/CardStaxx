@@ -115,12 +115,12 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
           height={16}
           fill="rgba(0,0,0,0)"
           onMouseEnter={(e) => {
-            e.target.getStage()!.container().style.cursor = 'text';
+            e.target.getStage()!.container().style.cursor = 'pointer';
           }}
           onMouseLeave={(e) => {
             e.target.getStage()!.container().style.cursor = 'default';
           }}
-          onDblClick={() => {
+          onClick={() => {
             dateTextRef.current && onEditStart(card.id, 'date', dateTextRef.current);
           }}
         />
@@ -181,7 +181,7 @@ const Notecard = ({ card, onEditStart, onResize, isResizing = false }: NotecardP
       {/* Tags text - always create ref for positioning, only show text if tags exist */}
       <Text
         ref={tagsTextRef}
-        text={card.tags && card.tags.length > 0 ? `#${card.tags.join(' #')}` : ''}
+        text={card.tags && card.tags.length > 0 ? `#${card.tags.map(tag => tag.toLowerCase()).join(' #')}` : ''}
         fontSize={12}
         fill="#007bff"
         x={TITLE_PADDING + 18}

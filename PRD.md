@@ -57,6 +57,11 @@ A directed relationship between two stacks of notecards.
 *   **Card Deletion:** Individual cards can be deleted with confirmation dialogs. No undo functionality is provided.
 *   **Card Editing:** 
     *   **Text Content:** Double-click cards to edit title and content with in-place text overlays. Content supports markdown formatting (rendered in display mode, raw markdown shown when editing).
+    *   **Field-Specific Editing:** 
+        *   Click date icons (📅) to edit dates with date picker input and consistent format handling
+        *   Click key icons (🔑) to edit key values with proper positioning and font sizing
+        *   Click tag icons (🏷️) to edit tags with automatic lowercase formatting and comma separation
+        *   All editing overlays use appropriate font sizes matching their display counterparts
     *   **Background Colors:** Cards can have their background color changed from a palette of 20 pastel colors.
 *   **Card Resizing:** Cards can be resized using drag handles on the top (most visible) card in each stack. When a card in a stack is resized, all cards in that stack are resized to maintain visual consistency.
 *   **Stacking:**
@@ -101,9 +106,16 @@ A directed relationship between two stacks of notecards.
 
 ### 5.6. Visual Enhancements
 *   **Card Visual Elements:**
-    *   **Field Display:** Date and key fields are visually displayed within each card's interface when present.
-    *   **Tag Display:** Card tags are visible on each card for easy identification.
+    *   **Field Display with Icons:** 
+        *   Date fields are displayed with a 📅 calendar icon in dd/MM/yyyy format for consistent international date representation
+        *   Key fields are displayed with a 🔑 key icon when present, supporting click-to-edit functionality
+        *   All field text is properly aligned with their respective icons for visual consistency
+    *   **Tag Display:** Card tags are visible on each card with a 🏷️ tag icon, automatically formatted in lowercase for consistency
     *   **Background Colors:** Each card can have a custom background color selected from a fixed palette of 20 pastel colors.
+    *   **Typography & Spacing:** 
+        *   Optimized font sizes across all fields (20% increase from original) for improved readability
+        *   Enhanced vertical spacing between all card fields to reduce visual crowding
+        *   Consistent font sizing between display and editing modes for all field types
 *   **Stack Visual Features:**
     *   **Dotted Borders:** All stacks are rendered with a subtle dotted border encompassing all cards in the stack.
     *   **Stack Headers:** Each stack displays "Card X of Y" at the top-left corner to indicate the current card position within the total stack size.
