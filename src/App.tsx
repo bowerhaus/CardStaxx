@@ -73,6 +73,9 @@ function App() {
   const [colorPickerCardId, setColorPickerCardId] = useState<string | null>(null);
   const [colorPickerPosition, setColorPickerPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // State for scroll throttling
+  const [lastScrollTime, setLastScrollTime] = useState<{ [stackId: string]: number }>({});
+
   // Auto-load last opened file on startup
   useEffect(() => {
     const autoLoadLastFile = async () => {
@@ -327,22 +330,33 @@ function App() {
   };
 
   const handleStackWheel = (stackId: string, deltaY: number) => {
-    setStacks(
-      stacks.map(stack => {
-        if (stack.id === stackId && stack.cards.length > 1) {
-          const newCards = [...stack.cards];
-          if (deltaY > 0) {
-            const topCard = newCards.shift();
-            if (topCard) newCards.push(topCard);
-          } else {
-            const bottomCard = newCards.pop();
-            if (bottomCard) newCards.unshift(bottomCard);
+    const THROTTLE_MS = 200; // Minimum 200ms between scroll actions
+    const SCROLL_THRESHOLD = 50; // Require at least 50 deltaY to register as intentional scroll
+    
+    const now = Date.now();
+    const lastTime = lastScrollTime[stackId] || 0;
+    
+    // Only process scroll if enough time has passed AND scroll is significant enough
+    if (now - lastTime > THROTTLE_MS && Math.abs(deltaY) > SCROLL_THRESHOLD) {
+      setLastScrollTime(prev => ({ ...prev, [stackId]: now }));
+      
+      setStacks(
+        stacks.map(stack => {
+          if (stack.id === stackId && stack.cards.length > 1) {
+            const newCards = [...stack.cards];
+            if (deltaY > 0) {
+              const topCard = newCards.shift();
+              if (topCard) newCards.push(topCard);
+            } else {
+              const bottomCard = newCards.pop();
+              if (bottomCard) newCards.unshift(bottomCard);
+            }
+            return { ...stack, cards: newCards };
           }
-          return { ...stack, cards: newCards };
-        }
-        return stack;
-      })
-    );
+          return stack;
+        })
+      );
+    }
   };
 
   const handleConnectionDragStart = (fromStackId: string, startX: number, startY: number) => {
