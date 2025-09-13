@@ -9,6 +9,30 @@ const CARD_HEIGHT = 150;
 const HANDLE_SIZE = 10; // Size of the connection handle
 const HEADER_OFFSET = 40; // Added HEADER_OFFSET
 
+// Utility function to calculate the center position of a stack (center of most visible card - topmost)
+const getStackCenterPosition = (stack: StackData): { x: number; y: number } => {
+  if (!stack.cards || stack.cards.length === 0) return { x: stack.x, y: stack.y };
+  
+  // The topmost visible card is the last one in the array
+  const topCard = stack.cards[stack.cards.length - 1];
+  const cardWidth = topCard.width || CARD_WIDTH;
+  const cardHeight = topCard.height || CARD_HEIGHT;
+  
+  // Account for stack rendering offsets (from Stack.tsx)
+  const borderPadding = 10;
+  const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+  const cardIndex = stack.cards.length - 1; // Index of the topmost card
+  
+  // Calculate the position of the topmost visible card within the stack
+  const xOffset = borderPadding + (cardWidth * (1 - 1.0)) / 2; // Scale is 1.0 for top card
+  const yOffset = borderPadding + headerTextSpace + cardIndex * HEADER_OFFSET + (cardHeight * (1 - 1.0)) / 2;
+  
+  return {
+    x: stack.x + xOffset + cardWidth / 2,
+    y: stack.y + yOffset + cardHeight / 2
+  };
+};
+
 interface CanvasProps {
   stacks: StackData[];
   connections: ConnectionData[];
@@ -192,18 +216,13 @@ const Canvas = React.memo(({
 
             if (!fromStack || !toStack) return null;
 
-            // Use dynamic card dimensions for connection points (stack center)
-            const fromTopCard = fromStack.cards[0];
-            const fromWidth = fromTopCard?.width || CARD_WIDTH;
-            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
-            const fromX = fromStack.x + fromWidth / 2;
-            const fromY = fromStack.y + fromStackHeight / 2;
-
-            const toTopCard = toStack.cards[0];
-            const toWidth = toTopCard?.width || CARD_WIDTH;
-            const toStackHeight = (toTopCard?.height || CARD_HEIGHT) + (toStack.cards.length - 1) * HEADER_OFFSET;
-            const toX = toStack.x + toWidth / 2;
-            const toY = toStack.y + toStackHeight / 2;
+            // Use centralized center position calculation (same as red handles)
+            const fromCenter = getStackCenterPosition(fromStack);
+            const toCenter = getStackCenterPosition(toStack);
+            const fromX = fromCenter.x;
+            const fromY = fromCenter.y;
+            const toX = toCenter.x;
+            const toY = toCenter.y;
 
             // Calculate midpoint for label positioning
             const midX = (fromX + toX) / 2;
@@ -301,11 +320,9 @@ const Canvas = React.memo(({
 
           {/* Connection Handles */}
           {stacks.map((stack) => {
-            const topCard = stack.cards[0];
-            const stackWidth = topCard?.width || CARD_WIDTH;
-            const stackHeight = (topCard?.height || CARD_HEIGHT) + (stack.cards.length - 1) * HEADER_OFFSET;
-            const handleX = stack.x + stackWidth / 2;
-            const handleY = stack.y + stackHeight / 2;
+            const centerPos = getStackCenterPosition(stack);
+            const handleX = centerPos.x;
+            const handleY = centerPos.y;
             return (
               <Circle
                 key={`handle-${stack.id}`}
@@ -426,22 +443,33 @@ const Canvas = React.memo(({
                 {highlightedCardIds && cardGroup.cards.some(card => highlightedCardIds.has(card.id)) && (
                   cardGroup.cards
                     .filter(card => highlightedCardIds.has(card.id))
-                    .map(card => (
-                      <Line
-                        key={`connection-${card.id}`}
-                        points={[
-                          cardGroup.x,
-                          cardGroup.y,
-                          card.stackPosition.x + 100, // Card center approximation
-                          card.stackPosition.y + 75   // Card center approximation
-                        ]}
+                    .map(card => {
+                      // Find the stack that contains this card
+                      const cardStack = stacks.find(stack => 
+                        stack.cards.some(c => c.id === card.id)
+                      );
+                      const centerPos = cardStack ? getStackCenterPosition(cardStack) : {
+                        x: card.stackPosition.x + (card.width || CARD_WIDTH) / 2,
+                        y: card.stackPosition.y + (card.height || CARD_HEIGHT) / 2
+                      };
+                      
+                      return (
+                        <Line
+                          key={`connection-${card.id}`}
+                          points={[
+                            cardGroup.x,
+                            cardGroup.y,
+                            centerPos.x, // Use centralized center calculation
+                            centerPos.y  // Use centralized center calculation
+                          ]}
                         stroke="#ffc107"
                         strokeWidth={2}
                         dash={[5, 5]}
                         opacity={0.8}
                         listening={false}
-                      />
-                    ))
+                        />
+                      );
+                    })
                 )}
               </Group>
             ))}

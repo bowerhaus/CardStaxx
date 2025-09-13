@@ -1,6 +1,35 @@
 import React from 'react';
 import { StackData } from '../types';
 
+// Default card dimensions
+const CARD_WIDTH = 200;
+const CARD_HEIGHT = 150;
+const HEADER_OFFSET = 40;
+
+// Utility function to calculate the center position of a stack (center of most visible card - topmost)
+const getStackCenterPosition = (stack: StackData): { x: number; y: number } => {
+  if (!stack.cards || stack.cards.length === 0) return { x: stack.x, y: stack.y };
+  
+  // The topmost visible card is the last one in the array
+  const topCard = stack.cards[stack.cards.length - 1];
+  const cardWidth = topCard.width || CARD_WIDTH;
+  const cardHeight = topCard.height || CARD_HEIGHT;
+  
+  // Account for stack rendering offsets (from Stack.tsx)
+  const borderPadding = 10;
+  const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+  const cardIndex = stack.cards.length - 1; // Index of the topmost card
+  
+  // Calculate the position of the topmost visible card within the stack
+  const xOffset = borderPadding + (cardWidth * (1 - 1.0)) / 2; // Scale is 1.0 for top card
+  const yOffset = borderPadding + headerTextSpace + cardIndex * HEADER_OFFSET + (cardHeight * (1 - 1.0)) / 2;
+  
+  return {
+    x: stack.x + xOffset + cardWidth / 2,
+    y: stack.y + yOffset + cardHeight / 2
+  };
+};
+
 interface TimelineProps {
   stacks: StackData[];
   canvasHeight: number;
@@ -153,17 +182,22 @@ const Timeline: React.FC<TimelineProps> = ({
             const timelineIconX = firstCard.timelineX;
             const timelineIconY = firstCard.timelineY;
             
-            // Calculate card position on canvas
-            const cardCanvasX = firstCard.stackPosition.x + 100; // Card center approximation
-            const cardCanvasY = firstCard.stackPosition.y + 75; // Card center approximation
+            // Find the stack that contains this card and get its center position
+            const cardStack = stacks.find(stack => 
+              stack.cards.some(c => c.id === firstCard.id)
+            );
+            const centerPos = cardStack ? getStackCenterPosition(cardStack) : {
+              x: firstCard.stackPosition.x + (firstCard.width || CARD_WIDTH) / 2,
+              y: firstCard.stackPosition.y + (firstCard.height || CARD_HEIGHT) / 2
+            };
             
             return (
               <line
                 key={`connection-${dateKey}`}
                 x1={timelineIconX}
                 y1={timelineIconY}
-                x2={cardCanvasX}
-                y2={cardCanvasY}
+                x2={centerPos.x}
+                y2={centerPos.y}
                 stroke="#ffc107"
                 strokeWidth="2"
                 strokeDasharray="5,5"
