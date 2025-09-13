@@ -44,12 +44,14 @@ A directed relationship between two stacks of notecards.
 
 ### 5.1. Main Interface
 *   **Sidebar:** A fixed control panel on the left containing:
+    *   File management buttons (New, Load, Save, Save As).
     *   Buttons for Card Creation.
-    *   A toggle button for the Timeline view.
-    *   Global text search field.
+    *   Global text search field with real-time filtering.
+    *   Key Cloud: Alphabetically sorted, single-select key filtering interface.
     *   Tag Cloud: An alphabetically sorted, multi-select tag filtering interface that dynamically populates with all available tags from cards.
-    *   Statistics panel displaying the total number of notecards.
-    *   Canvas zoom controls.
+    *   Statistics panel displaying filtered/total notecard counts.
+    *   Timeline toggle button with activation indicator.
+    *   **Canvas Zoom Controls:** Zoom in/out buttons, reset to 100% button, and live zoom percentage display (50%-200% range).
 *   **Canvas:** The main interactive workspace where notecards, stacks, and connections are rendered and manipulated.
 
 ### 5.2. Card & Stack Management
@@ -121,7 +123,20 @@ A directed relationship between two stacks of notecards.
     *   **Stack Headers:** Each stack displays "Card X of Y" at the top-left corner to indicate the current card position within the total stack size.
     *   **Rolodex Perspective Effect:** Cards behind the top card show only their titles in a subtle staggered perspective view, with each subsequent card appearing progressively smaller to create a depth effect.
 
-### 5.7. Data Persistence (Implemented)
+### 5.7. Keyboard Shortcuts
+*   **File Operations:**
+    *   `Ctrl+N` / `Cmd+N`: Create new workspace
+    *   `Ctrl+O` / `Cmd+O`: Open/Load workspace
+    *   `Ctrl+S` / `Cmd+S`: Save workspace
+    *   `Ctrl+Shift+S` / `Cmd+Shift+S`: Save As
+*   **Canvas Navigation:**
+    *   `Ctrl++` / `Cmd++`: Zoom in (max 200%)
+    *   `Ctrl+-` / `Cmd+-`: Zoom out (min 50%)
+    *   `Ctrl+0` / `Cmd+0`: Reset zoom to 100%
+*   **Editing:**
+    *   `Escape`: Cancel current editing or connection operation
+
+### 5.8. Data Persistence (Implemented)
 *   The application is **local-first** with full data persistence capabilities.
 *   **File Format**: Workspace data is saved in JSON format with .cardstaxx extension containing:
     *   Version information and timestamps (created, last modified)

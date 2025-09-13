@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Line, Circle, Text, Group, Rect } from 'react-konva'; // Import Circle, Text, Group, Rect
 import { StackData, ConnectionData, NotecardData } from '../types';
 import Stack from './Stack';
@@ -89,8 +89,20 @@ const Canvas = React.memo(({
   canvasZoom = 1
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
-  const canvasWidth = window.innerWidth - 270;
-  const canvasHeight = window.innerHeight;
+  
+  // Canvas dimensions with resize listener
+  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - 270);
+  const [canvasHeight, setCanvasHeight] = useState(window.innerHeight);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCanvasWidth(window.innerWidth - 270);
+      setCanvasHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Timeline logic
   const allCards = stacks.flatMap(stack => 
