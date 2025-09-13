@@ -31,6 +31,9 @@ interface CanvasProps {
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
   editingConnectionId?: string | null;
   highlightedCardIds?: Set<string>;
+  isTimelineVisible?: boolean;
+  onTimelineCardClick?: (cardId: string) => void;
+  onTimelineCardHover?: (cardId: string | null) => void;
 }
 
 const Canvas = React.memo(({
@@ -55,10 +58,90 @@ const Canvas = React.memo(({
   editingField,
   editingConnectionId,
   highlightedCardIds,
+  isTimelineVisible,
+  onTimelineCardClick,
+  onTimelineCardHover
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   const canvasWidth = window.innerWidth - 270;
   const canvasHeight = window.innerHeight;
+
+  // Timeline logic
+  const allCards = stacks.flatMap(stack => 
+    stack.cards.map(card => ({
+      ...card,
+      stackId: stack.id,
+      stackPosition: { x: stack.x, y: stack.y }
+    }))
+  );
+
+  const datedCards = allCards
+    .filter(card => card.date)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Timeline dimensions
+  const TIMELINE_HEIGHT = 60;
+  const TIMELINE_MARGIN = 20;
+  const timelineY = canvasHeight - TIMELINE_HEIGHT - TIMELINE_MARGIN;
+  const timelineX = TIMELINE_MARGIN;
+  const timelineWidth = canvasWidth - (TIMELINE_MARGIN * 2);
+
+  // Define types for timeline cards
+  type TimelineCard = {
+    id: string;
+    title: string;
+    date: string;
+    stackId: string;
+    stackPosition: { x: number; y: number };
+    timelineX: number;
+    timelineY: number;
+  };
+
+  type TimelineCardGroup = {
+    dateKey: string;
+    cards: TimelineCard[];
+    x: number;
+    y: number;
+    count: number;
+  };
+
+  // Calculate card positions on timeline
+  let timelineCards: TimelineCardGroup[] = [];
+  if (datedCards.length > 0 && isTimelineVisible) {
+    const earliestDate = new Date(datedCards[0].date);
+    const latestDate = new Date(datedCards[datedCards.length - 1].date);
+    const dateRange = latestDate.getTime() - earliestDate.getTime();
+
+    const positionedCards: TimelineCard[] = datedCards.map(card => {
+      const cardDate = new Date(card.date);
+      const relativePosition = dateRange > 0 ? (cardDate.getTime() - earliestDate.getTime()) / dateRange : 0;
+      const x = timelineX + (relativePosition * timelineWidth);
+      
+      return {
+        ...card,
+        timelineX: x,
+        timelineY: timelineY + TIMELINE_HEIGHT / 2
+      };
+    });
+
+    // Group cards by date
+    const cardGroups = positionedCards.reduce((groups, card) => {
+      const dateKey = new Date(card.date).toDateString();
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(card);
+      return groups;
+    }, {} as Record<string, TimelineCard[]>);
+
+    timelineCards = Object.entries(cardGroups).map(([dateKey, cards]) => ({
+      dateKey,
+      cards,
+      x: cards[0].timelineX,
+      y: cards[0].timelineY,
+      count: cards.length
+    }));
+  }
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (isConnecting && currentConnection) {
@@ -252,6 +335,118 @@ const Canvas = React.memo(({
             );
           })}
         </Layer>
+
+        {/* Timeline Layer */}
+        {isTimelineVisible && datedCards.length > 0 && (
+          <Layer>
+            {/* Timeline background bar */}
+            <Rect
+              x={timelineX}
+              y={timelineY}
+              width={timelineWidth}
+              height={TIMELINE_HEIGHT}
+              fill="rgba(255, 255, 255, 0.9)"
+              stroke="#ddd"
+              strokeWidth={1}
+              cornerRadius={8}
+              shadowBlur={5}
+              shadowOpacity={0.3}
+              shadowColor="black"
+            />
+
+            {/* Timeline axis line */}
+            <Line
+              points={[timelineX + 10, timelineY + TIMELINE_HEIGHT / 2, timelineX + timelineWidth - 10, timelineY + TIMELINE_HEIGHT / 2]}
+              stroke="#007bff"
+              strokeWidth={2}
+            />
+
+            {/* Date labels */}
+            <Text
+              text={new Date(datedCards[0].date).toLocaleDateString('en-GB')}
+              fontSize={10}
+              fill="#666"
+              fontStyle="bold"
+              x={timelineX + 10}
+              y={timelineY + 5}
+            />
+            <Text
+              text={new Date(datedCards[datedCards.length - 1].date).toLocaleDateString('en-GB')}
+              fontSize={10}
+              fill="#666"
+              fontStyle="bold"
+              x={timelineX + timelineWidth - 80}
+              y={timelineY + 5}
+            />
+
+            {/* Timeline card icons */}
+            {timelineCards.map((cardGroup, index) => (
+              <Group key={`timeline-${cardGroup.dateKey}`}>
+                {/* Card icon */}
+                <Rect
+                  x={cardGroup.x - 6}
+                  y={cardGroup.y - 9}
+                  width={12}
+                  height={18}
+                  cornerRadius={2}
+                  fill={cardGroup.cards[0].backgroundColor || '#ffffff'}
+                  stroke="#ccc"
+                  strokeWidth={1}
+                  onClick={() => {
+                    if (onTimelineCardClick && cardGroup.cards.length > 0) {
+                      onTimelineCardClick(cardGroup.cards[0].id);
+                    }
+                  }}
+                  onMouseEnter={() => {
+                    if (onTimelineCardHover && cardGroup.cards.length > 0) {
+                      onTimelineCardHover(cardGroup.cards[0].id);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (onTimelineCardHover) {
+                      onTimelineCardHover(null);
+                    }
+                  }}
+                />
+                
+                {/* Count indicator for multi-card groups */}
+                <Text
+                  text={cardGroup.count > 1 ? cardGroup.count.toString() : "●"}
+                  fontSize={cardGroup.count > 1 ? 8 : 6}
+                  fill="white"
+                  fontStyle="bold"
+                  x={cardGroup.x}
+                  y={cardGroup.y}
+                  offsetX={cardGroup.count > 1 ? 4 : 2}
+                  offsetY={cardGroup.count > 1 ? 6 : 3}
+                  listening={false}
+                />
+
+                {/* Connection lines to highlighted cards */}
+                {highlightedCardIds && cardGroup.cards.some(card => highlightedCardIds.has(card.id)) && (
+                  cardGroup.cards
+                    .filter(card => highlightedCardIds.has(card.id))
+                    .map(card => (
+                      <Line
+                        key={`connection-${card.id}`}
+                        points={[
+                          cardGroup.x,
+                          cardGroup.y,
+                          card.stackPosition.x + 100, // Card center approximation
+                          card.stackPosition.y + 75   // Card center approximation
+                        ]}
+                        stroke="#ffc107"
+                        strokeWidth={2}
+                        dash={[5, 5]}
+                        opacity={0.8}
+                        listening={false}
+                      />
+                    ))
+                )}
+              </Group>
+            ))}
+          </Layer>
+        )}
       </Stage>
     </div>
   );

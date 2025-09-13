@@ -98,6 +98,9 @@ function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [highlightedCardIds, setHighlightedCardIds] = useState<Set<string>>(new Set());
 
+  // State for timeline
+  const [isTimelineVisible, setIsTimelineVisible] = useState<boolean>(false);
+
   // Search and filtering functions
   const performSearch = useCallback((filters: SearchFilters): SearchResult[] => {
     const results: SearchResult[] = [];
@@ -239,6 +242,25 @@ function App() {
 
   const handleKeyFilterChange = (key?: string) => {
     setSearchFilters(prev => ({ ...prev, focusedKey: key }));
+  };
+
+  // Timeline toggle handler
+  const handleTimelineToggle = () => {
+    setIsTimelineVisible(prev => !prev);
+  };
+
+  // Timeline card interaction handlers
+  const handleTimelineCardClick = (cardId: string) => {
+    // Highlight the clicked card
+    setHighlightedCardIds(new Set([cardId]));
+  };
+
+  const handleTimelineCardHover = (cardId: string | null) => {
+    if (cardId) {
+      setHighlightedCardIds(new Set([cardId]));
+    } else {
+      setHighlightedCardIds(new Set());
+    }
   };
 
   // Auto-load last opened file on startup
@@ -903,6 +925,8 @@ function App() {
         searchResults={searchResults}
         totalCards={stacks.reduce((count, stack) => count + stack.cards.length, 0)}
         filteredCards={filteredStacks.reduce((count, stack) => count + stack.cards.length, 0)}
+        isTimelineVisible={isTimelineVisible}
+        onTimelineToggle={handleTimelineToggle}
       />
       <Canvas
         stacks={filteredStacks}
@@ -926,6 +950,9 @@ function App() {
         editingField={editingField} // Pass editing field
         editingConnectionId={editingConnectionId} // Pass connection editing state
         highlightedCardIds={highlightedCardIds} // Pass highlighted cards
+        isTimelineVisible={isTimelineVisible} // Pass timeline visibility
+        onTimelineCardClick={handleTimelineCardClick} // Pass timeline click handler
+        onTimelineCardHover={handleTimelineCardHover} // Pass timeline hover handler
       />
       {/* Markdown renderers for card content */}
       {cardPositions.map(({ card, x, y, width, height, isEditing }) => 

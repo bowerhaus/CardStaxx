@@ -18,6 +18,8 @@ interface SidebarProps {
   searchResults: SearchResult[];
   totalCards: number;
   filteredCards: number;
+  isTimelineVisible: boolean;
+  onTimelineToggle: () => void;
 }
 
 const Sidebar = ({ 
@@ -36,7 +38,9 @@ const Sidebar = ({
   availableKeys,
   searchResults,
   totalCards,
-  filteredCards
+  filteredCards,
+  isTimelineVisible,
+  onTimelineToggle
 }: SidebarProps) => {
   const getFileName = () => {
     if (!currentFilePath) return 'Untitled';
@@ -162,14 +166,16 @@ const Sidebar = ({
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.target.style.backgroundColor = '#e9ecef';
-                      e.target.style.borderColor = '#28a745';
+                      const target = e.target as HTMLElement;
+                      target.style.backgroundColor = '#e9ecef';
+                      target.style.borderColor = '#28a745';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.target.style.backgroundColor = '#f8f9fa';
-                      e.target.style.borderColor = '#ccc';
+                      const target = e.target as HTMLElement;
+                      target.style.backgroundColor = '#f8f9fa';
+                      target.style.borderColor = '#ccc';
                     }
                   }}
                 >
@@ -221,14 +227,16 @@ const Sidebar = ({
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.target.style.backgroundColor = '#e9ecef';
-                      e.target.style.borderColor = '#007bff';
+                      const target = e.target as HTMLElement;
+                      target.style.backgroundColor = '#e9ecef';
+                      target.style.borderColor = '#007bff';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.target.style.backgroundColor = '#f8f9fa';
-                      e.target.style.borderColor = '#ccc';
+                      const target = e.target as HTMLElement;
+                      target.style.backgroundColor = '#f8f9fa';
+                      target.style.borderColor = '#ccc';
                     }
                   }}
                 >
@@ -259,9 +267,44 @@ const Sidebar = ({
         </div>
       )}
 
-      <hr />
-      <button style={{ fontFamily: 'inherit' }}>Create Timeline</button>
-      <hr />
+      {/* Timeline Toggle */}
+      <div style={{ marginTop: '20px' }}>
+        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Timeline View</h4>
+        <button
+          onClick={onTimelineToggle}
+          style={{
+            width: '100%',
+            padding: '8px 12px',
+            backgroundColor: isTimelineVisible ? '#007bff' : '#f8f9fa',
+            color: isTimelineVisible ? 'white' : '#333',
+            border: `1px solid ${isTimelineVisible ? '#007bff' : '#ccc'}`,
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            fontWeight: isTimelineVisible ? 'bold' : 'normal',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px'
+          }}
+          onMouseEnter={(e) => {
+            if (!isTimelineVisible) {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#e9ecef';
+              target.style.borderColor = '#007bff';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isTimelineVisible) {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#f8f9fa';
+              target.style.borderColor = '#ccc';
+            }
+          }}
+        >
+          📅 {isTimelineVisible ? 'Hide Timeline' : 'Show Timeline'}
+        </button>
+      </div>
       <div>
         <h4 style={{ fontFamily: 'inherit' }}>Canvas Zoom</h4>
         {/* Zoom controls will go here */}

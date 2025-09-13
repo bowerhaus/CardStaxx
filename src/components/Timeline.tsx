@@ -1,0 +1,308 @@
+import React from 'react';
+import { StackData } from '../types';
+
+interface TimelineProps {
+  stacks: StackData[];
+  canvasHeight: number;
+  canvasWidth: number;
+  onCardClick?: (cardId: string) => void;
+  onCardHover?: (cardId: string | null) => void;
+  highlightedCardIds?: Set<string>;
+  sidebarWidth?: number;
+}
+
+const Timeline: React.FC<TimelineProps> = ({ 
+  stacks, 
+  canvasHeight, 
+  canvasWidth,
+  onCardClick,
+  onCardHover,
+  highlightedCardIds,
+  sidebarWidth = 320
+}) => {
+  // Get all cards with dates and sort them
+  const allCards = stacks.flatMap(stack => 
+    stack.cards.map(card => ({
+      ...card,
+      stackId: stack.id,
+      stackPosition: { x: stack.x, y: stack.y }
+    }))
+  );
+
+  // Filter out cards without dates and sort by date
+  const datedCards = allCards
+    .filter(card => card.date)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // Debug logging
+  console.log('Timeline - All cards:', allCards.length);
+  console.log('Timeline - Cards with dates:', datedCards.length);
+  if (datedCards.length > 0) {
+    console.log('Timeline - First few cards:', datedCards.slice(0, 3).map(c => ({ id: c.id, title: c.title, date: c.date })));
+  }
+
+  if (datedCards.length === 0) {
+    return (
+      <div style={{
+        position: 'absolute',
+        bottom: 20,
+        left: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        padding: '10px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        color: '#666'
+      }}>
+        No cards with dates found. Add dates to your cards to see them on the timeline.
+      </div>
+    ); // Show helpful message when no cards have dates
+  }
+
+  // Calculate timeline dimensions and positioning (relative to canvas area, not full window)
+  const TIMELINE_HEIGHT = 60;
+  const TIMELINE_MARGIN = 20;
+  const timelineTop = canvasHeight - TIMELINE_HEIGHT - TIMELINE_MARGIN;
+  const timelineLeft = TIMELINE_MARGIN;
+  const timelineWidth = canvasWidth - (TIMELINE_MARGIN * 2);
+
+  // Get date range
+  const earliestDate = new Date(datedCards[0].date);
+  const latestDate = new Date(datedCards[datedCards.length - 1].date);
+  const dateRange = latestDate.getTime() - earliestDate.getTime();
+
+  // Generate weekly markers (Mondays)
+  const getWeeklyMarkers = () => {
+    const markers: { date: Date; position: number }[] = [];
+    const startDate = new Date(earliestDate);
+    
+    // Find the first Monday on or before the earliest date
+    const dayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Calculate days to get to Monday
+    const firstMonday = new Date(startDate);
+    firstMonday.setDate(startDate.getDate() - daysToSubtract);
+    
+    let currentMonday = new Date(firstMonday);
+    
+    // Generate Mondays until we exceed the latest date
+    while (currentMonday <= latestDate) {
+      const relativePosition = dateRange > 0 ? (currentMonday.getTime() - earliestDate.getTime()) / dateRange : 0;
+      const x = timelineLeft + (relativePosition * timelineWidth);
+      
+      // Only include markers that are within the visible timeline area
+      if (x >= timelineLeft && x <= timelineLeft + timelineWidth) {
+        markers.push({
+          date: new Date(currentMonday),
+          position: x
+        });
+      }
+      
+      // Move to next Monday
+      currentMonday.setDate(currentMonday.getDate() + 7);
+    }
+    
+    return markers;
+  };
+
+  const weeklyMarkers = getWeeklyMarkers();
+
+  // Position cards on timeline
+  const positionedCards = datedCards.map(card => {
+    const cardDate = new Date(card.date);
+    const relativePosition = dateRange > 0 ? (cardDate.getTime() - earliestDate.getTime()) / dateRange : 0;
+    const x = timelineLeft + (relativePosition * timelineWidth);
+    
+    return {
+      ...card,
+      timelineX: x,
+      timelineY: timelineTop + 30 // Position cards in middle of timeline
+    };
+  });
+
+  // Group cards by date for better visualization
+  const cardGroups = positionedCards.reduce((groups, card) => {
+    const dateKey = new Date(card.date).toDateString();
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(card);
+    return groups;
+  }, {} as Record<string, typeof positionedCards>);
+
+  return (
+    <>
+      {/* Connection lines SVG overlay */}
+      {highlightedCardIds && highlightedCardIds.size > 0 && (
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: canvasWidth,
+            height: canvasHeight,
+            pointerEvents: 'none',
+            zIndex: 999
+          }}
+        >
+          {Object.entries(cardGroups).map(([dateKey, cards]) => {
+            const firstCard = cards[0];
+            const isHighlighted = highlightedCardIds.has(firstCard.id);
+            
+            if (!isHighlighted) return null;
+            
+            // Calculate timeline icon position (no sidebar offset needed now)
+            const timelineIconX = firstCard.timelineX;
+            const timelineIconY = firstCard.timelineY;
+            
+            // Calculate card position on canvas
+            const cardCanvasX = firstCard.stackPosition.x + 100; // Card center approximation
+            const cardCanvasY = firstCard.stackPosition.y + 75; // Card center approximation
+            
+            return (
+              <line
+                key={`connection-${dateKey}`}
+                x1={timelineIconX}
+                y1={timelineIconY}
+                x2={cardCanvasX}
+                y2={cardCanvasY}
+                stroke="#ffc107"
+                strokeWidth="2"
+                strokeDasharray="5,5"
+                opacity="0.8"
+              />
+            );
+          })}
+        </svg>
+      )}
+      
+      {/* Timeline container */}
+      <div
+        style={{
+          position: 'absolute',
+          top: timelineTop,
+          left: timelineLeft,
+          width: timelineWidth,
+          height: TIMELINE_HEIGHT,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 10px',
+          zIndex: 1000,
+          pointerEvents: 'auto'
+        }}
+      >
+      {/* Timeline axis line */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '10px',
+          right: '10px',
+          height: '2px',
+          backgroundColor: '#007bff',
+          transform: 'translateY(-50%)'
+        }}
+      />
+
+      {/* Weekly markers (Mondays) */}
+      {weeklyMarkers.map((marker, index) => (
+        <div
+          key={`week-${index}`}
+          style={{
+            position: 'absolute',
+            left: marker.position - timelineLeft - 1,
+            top: '25%',
+            width: '2px',
+            height: '50%',
+            backgroundColor: '#28a745',
+            opacity: 0.6
+          }}
+          title={`Week of ${marker.date.toLocaleDateString('en-GB')}`}
+        />
+      ))}
+
+      {/* Date labels */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '10px',
+          top: '5px',
+          fontSize: '10px',
+          color: '#666',
+          fontWeight: 'bold'
+        }}
+      >
+        {earliestDate.toLocaleDateString('en-GB')}
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          right: '10px',
+          top: '5px',
+          fontSize: '10px',
+          color: '#666',
+          fontWeight: 'bold'
+        }}
+      >
+        {latestDate.toLocaleDateString('en-GB')}
+      </div>
+
+      {/* Card icons on timeline */}
+      {Object.entries(cardGroups).map(([dateKey, cards], groupIndex) => {
+        const firstCard = cards[0];
+        const groupSize = cards.length;
+        const isMultiCard = groupSize > 1;
+        
+        console.log('Timeline marker:', {
+          dateKey,
+          cardId: firstCard.id,
+          backgroundColor: firstCard.backgroundColor,
+          groupSize
+        });
+
+        return (
+          <div
+            key={dateKey}
+            style={{
+              position: 'absolute',
+              left: firstCard.timelineX - timelineLeft - 6,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '12px',
+              height: '18px',
+              borderRadius: '2px',
+              backgroundColor: firstCard.backgroundColor || '#ffffff',
+              border: '1px solid #ccc',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '8px',
+              color: '#333',
+              fontWeight: 'bold',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.2)'
+            }}
+            title={`${new Date(firstCard.date).toLocaleDateString('en-GB')} - ${groupSize} card${groupSize > 1 ? 's' : ''}`}
+            onClick={() => {
+              // Click on first card in group
+              onCardClick?.(firstCard.id);
+            }}
+            onMouseEnter={() => {
+              onCardHover?.(firstCard.id);
+            }}
+            onMouseLeave={() => {
+              onCardHover?.(null);
+            }}
+          >
+            {isMultiCard ? groupSize.toString() : ''}
+          </div>
+        );
+      })}
+      </div>
+    </>
+  );
+};
+
+export default Timeline;
