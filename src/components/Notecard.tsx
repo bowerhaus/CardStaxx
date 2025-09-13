@@ -8,6 +8,7 @@ interface NotecardProps {
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen?: (cardId: string, x: number, y: number) => void;
+  isEditing?: boolean;
   isResizing?: boolean;
 }
 
@@ -16,7 +17,7 @@ const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isResizing = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isEditing = false, isResizing = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -223,6 +224,7 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, isResizing =
         width={cardWidth - TITLE_PADDING * 2}
         height={cardHeight - getContentY() - 40}
         listening={false}
+        visible={isEditing} // Only show plain text when editing
       />
       {/* Transparent Rect for content hit detection */}
       <Rect

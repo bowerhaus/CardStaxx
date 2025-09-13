@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay'; // Import new component
 import ColorPicker from './components/ColorPicker';
+import MarkdownRenderer from './components/MarkdownRenderer';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS } from './types';
 import Konva from 'konva'; // Import Konva for Node type
 
@@ -48,9 +49,16 @@ function App() {
         { 
           id: 'card-1', 
           title: 'Welcome!', 
-          content: 'This is a card in a stack.',
+          content: 'This is the bottom card',
           date: new Date().toISOString(),
           backgroundColor: CARD_COLORS.DEFAULT
+        },
+        { 
+          id: 'card-2', 
+          title: 'Top Card', 
+          content: '# Hello World\n\nThis is a **markdown** card with:\n\n- Bullet points\n- *Italic text*\n- `code snippets`\n\n> A blockquote example',
+          date: new Date().toISOString(),
+          backgroundColor: CARD_COLORS.LIGHT_BLUE
         },
       ],
     },
@@ -576,6 +584,51 @@ function App() {
 
   const overlayPos = getOverlayPosition();
 
+  // Function to get card positions for markdown rendering
+  const getCardScreenPositions = () => {
+    const positions: Array<{
+      card: NotecardData;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      isEditing: boolean;
+    }> = [];
+
+    const SIDEBAR_WIDTH = 270; // Match the Canvas component sidebar offset
+
+    stacks.forEach(stack => {
+      if (stack.cards && stack.cards.length > 0) {
+        // Only render markdown for the top (most visible) card in each stack
+        const topCard = stack.cards[stack.cards.length - 1];
+        const cardWidth = topCard.width || CARD_WIDTH;
+        const cardHeight = topCard.height || CARD_HEIGHT;
+        const borderPadding = 10;
+        const HEADER_OFFSET = 40; // Match Stack component constant
+        
+        // Calculate the position of the top card within the stack (same logic as Stack component)
+        const totalCards = stack.cards.length;
+        const topCardIndex = totalCards - 1;
+        const scale = 1.0; // Top card is always full scale
+        const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
+        const yOffset = borderPadding + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
+        
+        positions.push({
+          card: topCard,
+          x: SIDEBAR_WIDTH + stack.x + xOffset, // Add sidebar offset + card offset within stack
+          y: stack.y + yOffset, // Add card offset within stack
+          width: cardWidth,
+          height: cardHeight,
+          isEditing: editingCardId === topCard.id && editingField === 'content'
+        });
+      }
+    });
+
+    return positions;
+  };
+
+  const cardPositions = getCardScreenPositions();
+
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar 
@@ -602,7 +655,23 @@ function App() {
         onEditStart={handleEditStart} // Pass onEditStart
         onCardResize={handleCardResize} // Pass onCardResize
         onColorPickerOpen={handleColorPickerOpen} // Pass onColorPickerOpen
+        editingCardId={editingCardId} // Pass editing state
+        editingField={editingField} // Pass editing field
       />
+      {/* Markdown renderers for card content */}
+      {cardPositions.map(({ card, x, y, width, height, isEditing }) => 
+        !isEditing && card.content && card.content.trim() !== '' ? (
+          <MarkdownRenderer
+            key={`markdown-${card.id}`}
+            content={card.content}
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            backgroundColor={card.backgroundColor}
+          />
+        ) : null
+      )}
       {editingCardId && editingField && editingKonvaNode && (
         <EditableTextOverlay
           x={overlayPos.x}

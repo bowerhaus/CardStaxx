@@ -18,7 +18,9 @@
     "konva": "^10.0.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-konva": "^19.0.10"
+    "react-konva": "^19.0.10",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.9.0",

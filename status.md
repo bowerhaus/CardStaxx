@@ -7,7 +7,7 @@ This document tracks the comprehensive implementation progress of the CardStaxx 
 
 ### Current Phase Mini-Plan:
 - [x] **2.1** Implement card background color selection UI
-- [ ] **2.2** Add markdown rendering and editing support
+- [x] **2.2** Add markdown rendering and editing support
 - [x] **2.3** Display date and key fields visibly on cards with proper icons and formatting
 - [x] **2.4** Show tags on individual cards with proper icons and lowercase formatting
 - [ ] **2.5** Implement card deletion with confirmation dialogs
@@ -45,7 +45,7 @@ This document tracks the comprehensive implementation progress of the CardStaxx 
 **Progress: 87.5% (7/8 tasks completed)**
 
 - [x] **2.1** Implement card background color selection UI
-- [ ] **2.2** Add markdown rendering and editing support
+- [x] **2.2** Add markdown rendering and editing support
 - [x] **2.3** Display date and key fields visibly on cards with calendar and key icons
 - [x] **2.4** Show tags on individual cards with tag icons and proper formatting
 - [ ] **2.5** Implement card deletion with confirmation dialogs
