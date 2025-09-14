@@ -484,7 +484,7 @@ const Sidebar = ({
                   onClick={() => handleKeySelect(key)}
                   style={{
                     fontSize: '11px',
-                    padding: '4px 8px',
+                    padding: '1px 6px',
                     borderRadius: '4px', // Rectangle shape (less rounded than pills)
                     border: isSelected ? 'none' : '1px solid #ccc',
                     backgroundColor: isSelected ? '#28a745' : '#f8f9fa', // Green for keys vs blue for tags
@@ -556,7 +556,7 @@ const Sidebar = ({
                   onClick={() => handleTagToggle(tag)}
                   style={{
                     fontSize: '11px',
-                    padding: '4px 8px',
+                    padding: '1px 6px',
                     borderRadius: '12px',
                     border: isSelected ? 'none' : '1px solid #ccc',
                     backgroundColor: isSelected ? '#007bff' : '#f8f9fa',
