@@ -163,7 +163,6 @@ const Stack = React.memo(({
             <Notecard 
               card={card} 
               onEditStart={onEditStart}
-              onResize={isTopCard ? handleCardResize : undefined} // Only top (most visible) card can be resized
               onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
               onDelete={isTopCard ? onCardDelete : undefined} // Only top card can be deleted
               isEditing={editingCardId === card.id && editingField === 'content'} // Pass editing state
@@ -172,6 +171,137 @@ const Stack = React.memo(({
           </Group>
         );
       })}
+      
+      {/* Stack resize handles - at stack edges */}
+      {/* Bottom edge resize */}
+      <Rect
+        x={borderPadding}
+        y={stackHeight - 5}
+        width={stackWidth - borderPadding * 2}
+        height={10}
+        fill="rgba(0,0,0,0)" // Invisible
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 's-resize';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+          const stage = e.target.getStage();
+          if (!stage) return;
+          
+          const startHeight = baseCardHeight;
+          const startY = e.evt.clientY;
+          
+          const handleMouseMove = (e: any) => {
+            const deltaY = e.evt.clientY - startY;
+            const newHeight = Math.max(80, startHeight + deltaY); // Minimum height 80px
+            // Resize all cards in the stack
+            stack.cards.forEach(card => {
+              handleCardResize(card.id, card.width || baseCardWidth, newHeight);
+            });
+          };
+          
+          const handleMouseUp = () => {
+            stage.off('mousemove', handleMouseMove);
+            stage.off('mouseup', handleMouseUp);
+            document.body.style.cursor = 'default';
+          };
+          
+          stage.on('mousemove', handleMouseMove);
+          stage.on('mouseup', handleMouseUp);
+          document.body.style.cursor = 's-resize';
+        }}
+      />
+      
+      {/* Right edge resize */}
+      <Rect
+        x={stackWidth - 5}
+        y={borderPadding + headerTextSpace}
+        width={10}
+        height={stackHeight - borderPadding * 2 - headerTextSpace}
+        fill="rgba(0,0,0,0)" // Invisible
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'e-resize';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+          const stage = e.target.getStage();
+          if (!stage) return;
+          
+          const startWidth = baseCardWidth;
+          const startX = e.evt.clientX;
+          
+          const handleMouseMove = (e: any) => {
+            const deltaX = e.evt.clientX - startX;
+            const newWidth = Math.max(100, startWidth + deltaX); // Minimum width 100px
+            // Resize all cards in the stack
+            stack.cards.forEach(card => {
+              handleCardResize(card.id, newWidth, card.height || baseCardHeight);
+            });
+          };
+          
+          const handleMouseUp = () => {
+            stage.off('mousemove', handleMouseMove);
+            stage.off('mouseup', handleMouseUp);
+            document.body.style.cursor = 'default';
+          };
+          
+          stage.on('mousemove', handleMouseMove);
+          stage.on('mouseup', handleMouseUp);
+          document.body.style.cursor = 'e-resize';
+        }}
+      />
+      
+      {/* Bottom-right corner resize */}
+      <Rect
+        x={stackWidth - 15}
+        y={stackHeight - 15}
+        width={15}
+        height={15}
+        fill="rgba(0,0,0,0)" // Invisible
+        onMouseEnter={(e) => {
+          e.target.getStage()!.container().style.cursor = 'se-resize';
+        }}
+        onMouseLeave={(e) => {
+          e.target.getStage()!.container().style.cursor = 'default';
+        }}
+        onMouseDown={(e) => {
+          e.cancelBubble = true;
+          const stage = e.target.getStage();
+          if (!stage) return;
+          
+          const startWidth = baseCardWidth;
+          const startHeight = baseCardHeight;
+          const startX = e.evt.clientX;
+          const startY = e.evt.clientY;
+          
+          const handleMouseMove = (e: any) => {
+            const deltaX = e.evt.clientX - startX;
+            const deltaY = e.evt.clientY - startY;
+            const newWidth = Math.max(100, startWidth + deltaX);
+            const newHeight = Math.max(80, startHeight + deltaY);
+            // Resize all cards in the stack
+            stack.cards.forEach(card => {
+              handleCardResize(card.id, newWidth, newHeight);
+            });
+          };
+          
+          const handleMouseUp = () => {
+            stage.off('mousemove', handleMouseMove);
+            stage.off('mouseup', handleMouseUp);
+            document.body.style.cursor = 'default';
+          };
+          
+          stage.on('mousemove', handleMouseMove);
+          stage.on('mouseup', handleMouseUp);
+          document.body.style.cursor = 'se-resize';
+        }}
+      />
     </Group>
   );
 });

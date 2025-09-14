@@ -318,15 +318,14 @@ const Canvas = React.memo(({
             const fromStack = stacks.find(s => s.id === currentConnection.fromStackId);
             if (!fromStack) return null;
             
-            const fromTopCard = fromStack.cards[0];
-            const fromWidth = fromTopCard?.width || CARD_WIDTH;
-            const fromStackHeight = (fromTopCard?.height || CARD_HEIGHT) + (fromStack.cards.length - 1) * HEADER_OFFSET;
+            // Use the same center position calculation as the red handles
+            const fromCenter = getStackCenterPosition(fromStack);
             
             return (
               <Line
                 points={[
-                  fromStack.x + fromWidth / 2,
-                  fromStack.y + fromStackHeight / 2,
+                  fromCenter.x,
+                  fromCenter.y,
                   currentConnection.toX,
                   currentConnection.toY,
                 ]}

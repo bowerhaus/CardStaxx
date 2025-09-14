@@ -248,59 +248,6 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, is
         }}
       />
       
-      {/* Resize handle - bottom-right corner */}
-      {onResize && (
-        <Rect
-          x={cardWidth - 10}
-          y={cardHeight - 10}
-          width={10}
-          height={10}
-          fill="rgba(0,123,255,0.8)"
-          stroke="rgba(0,123,255,1)"
-          strokeWidth={1}
-          cornerRadius={2}
-          onMouseEnter={(e) => {
-            e.target.getStage()!.container().style.cursor = 'se-resize';
-          }}
-          onMouseLeave={(e) => {
-            e.target.getStage()!.container().style.cursor = 'default';
-          }}
-          onMouseDown={(e) => {
-            // Stop propagation to prevent card dragging
-            e.cancelBubble = true;
-            
-            const stage = e.target.getStage();
-            if (!stage || !groupRef.current) return;
-            
-            // Start tracking mouse movements for resize
-            const handleMouseMove = () => {
-              const pointerPos = stage.getPointerPosition();
-              if (!pointerPos || !groupRef.current) return;
-              
-              // Get the absolute position and transform of the card group
-              const groupTransform = groupRef.current.getAbsoluteTransform();
-              
-              // Account for any scaling or transformations by using the inverse transform
-              const localPoint = groupTransform.copy().invert().point(pointerPos);
-              
-              const newWidth = localPoint.x;
-              const newHeight = localPoint.y;
-              
-              handleResize(newWidth, newHeight);
-            };
-            
-            const handleMouseUp = () => {
-              stage.off('mousemove', handleMouseMove);
-              stage.off('mouseup', handleMouseUp);
-              document.body.style.cursor = 'default';
-            };
-            
-            stage.on('mousemove', handleMouseMove);
-            stage.on('mouseup', handleMouseUp);
-            document.body.style.cursor = 'se-resize';
-          }}
-        />
-      )}
 
       {/* Delete button - top-right corner */}
       {onDelete && (

@@ -646,14 +646,25 @@ function App() {
 
       if (targetStack) {
         console.log('Target Stack Found:', targetStack.id);
-        const newConnection: ConnectionData = {
-          id: `conn-${Date.now()}`,
-          from: currentConnection.fromStackId,
-          to: targetStack.id,
-        };
-        setConnections([...connections, newConnection]);
-        setHasUnsavedChanges(true);
-        console.log('Connection created:', newConnection);
+        
+        // Check if connection already exists (in either direction)
+        const existingConnection = connections.find(conn => 
+          (conn.from === currentConnection.fromStackId && conn.to === targetStack.id) ||
+          (conn.from === targetStack.id && conn.to === currentConnection.fromStackId)
+        );
+        
+        if (existingConnection) {
+          console.log('Connection already exists between these stacks:', existingConnection);
+        } else {
+          const newConnection: ConnectionData = {
+            id: `conn-${Date.now()}`,
+            from: currentConnection.fromStackId,
+            to: targetStack.id,
+          };
+          setConnections([...connections, newConnection]);
+          setHasUnsavedChanges(true);
+          console.log('Connection created:', newConnection);
+        }
       } else {
         console.log('No target stack found at drop point.');
       }
