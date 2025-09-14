@@ -100,41 +100,98 @@ function App() {
   // State for timeline
   const [isTimelineVisible, setIsTimelineVisible] = useState<boolean>(false);
 
-  // State for canvas zoom and focus mode
+  // Define ViewSettings interface for dual zoom/translation settings
+  interface ViewSettings {
+    scale: number;
+    x: number;
+    y: number;
+  }
+
+  // State for canvas zoom and focus mode with dual settings
   const [canvasZoom, setCanvasZoom] = useState<number>(1); // 1 = 100%
   const [canvasTranslate, setCanvasTranslate] = useState<{x: number; y: number}>({x: 0, y: 0});
   const [isFocusModeEnabled, setIsFocusModeEnabled] = useState<boolean>(false);
+  
+  // Dual view settings - separate for normal and focus modes
+  const [normalViewSettings, setNormalViewSettings] = useState<ViewSettings>({
+    scale: 1,
+    x: 0,
+    y: 0
+  });
+  const [focusViewSettings, setFocusViewSettings] = useState<ViewSettings>({
+    scale: 1,
+    x: 0,
+    y: 0
+  });
 
-  // Zoom handlers
+  // Zoom handlers that update appropriate settings based on mode
   const handleZoomIn = () => {
-    setCanvasZoom(prev => Math.min(prev + 0.1, 2)); // Max 200%
+    const newZoom = Math.min(canvasZoom + 0.1, 2); // Max 200%
+    setCanvasZoom(newZoom);
+    
+    if (isFocusModeEnabled) {
+      // Update focus view settings
+      setFocusViewSettings(prev => ({
+        ...prev,
+        scale: newZoom
+      }));
+    } else {
+      // Update normal view settings
+      setNormalViewSettings(prev => ({
+        ...prev,
+        scale: newZoom
+      }));
+    }
     setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
   };
 
   const handleZoomOut = () => {
-    setCanvasZoom(prev => Math.max(prev - 0.1, 0.5)); // Min 50%
-    setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
-  };
-
-  const handleZoomReset = () => {
-    setCanvasZoom(1); // Reset to 100%
-    setCanvasTranslate({x: 0, y: 0}); // Reset translation
-    setIsFocusModeEnabled(false); // Disable focus mode
+    const newZoom = Math.max(canvasZoom - 0.1, 0.5); // Min 50%
+    setCanvasZoom(newZoom);
+    
+    if (isFocusModeEnabled) {
+      // Update focus view settings
+      setFocusViewSettings(prev => ({
+        ...prev,
+        scale: newZoom
+      }));
+    } else {
+      // Update normal view settings
+      setNormalViewSettings(prev => ({
+        ...prev,
+        scale: newZoom
+      }));
+    }
     setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
   };
 
 
   const handleFocusToggle = () => {
     if (isFocusModeEnabled) {
-      // Turn off focus mode - reset to normal view
-      setCanvasZoom(1);
-      setCanvasTranslate({x: 0, y: 0});
+      // Turn off focus mode - restore normal view settings
+      setCanvasZoom(normalViewSettings.scale);
+      setCanvasTranslate({x: normalViewSettings.x, y: normalViewSettings.y});
       setIsFocusModeEnabled(false);
     } else {
-      // Turn on focus mode - fit visible cards
+      // Save current normal view settings before switching to focus mode
+      setNormalViewSettings({
+        scale: canvasZoom,
+        x: canvasTranslate.x,
+        y: canvasTranslate.y
+      });
+      
+      // Turn on focus mode - calculate and apply focus transform
       const { zoom, translate } = calculateFocusTransform();
       setCanvasZoom(zoom);
       setCanvasTranslate(translate);
+      
+      // Save the focus view settings
+      setFocusViewSettings({
+        scale: zoom,
+        x: translate.x,
+        y: translate.y
+      });
+      
       setIsFocusModeEnabled(true);
     }
     setHasUnsavedChanges(false); // Focus mode changes don't mark as unsaved
@@ -182,7 +239,11 @@ function App() {
             e.preventDefault();
             handleZoomOut();
             break;
-          case '0':
+        }
+      } else {
+        // Non-modifier key shortcuts
+        switch (e.key.toLowerCase()) {
+          case 'f':
             e.preventDefault();
             handleFocusToggle();
             break;
@@ -401,6 +462,13 @@ function App() {
       const { zoom, translate } = calculateFocusTransform();
       setCanvasZoom(zoom);
       setCanvasTranslate(translate);
+      
+      // Update focus view settings with new calculated values
+      setFocusViewSettings({
+        scale: zoom,
+        x: translate.x,
+        y: translate.y
+      });
     }
   }, [searchFilters, stacks, isFocusModeEnabled, calculateFocusTransform]);
 

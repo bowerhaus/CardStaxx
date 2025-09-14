@@ -51,6 +51,7 @@ CardStaxx is an Electron-based desktop application for visual knowledge manageme
 - **In-place Editing**: Double-click to edit card titles and content
 - **Rich Card Fields**: Date, key, tags, and background color support with visual display
 - **Advanced Resize**: Card resize handles with proper mouse tracking and stack-wide resize functionality
+- **Focus Mode**: Toggle-able focus mode with target icon (🎯) that automatically frames visible cards, disables zoom controls when active, and maintains separate view settings for normal and focus modes
 - **Visual Enhancements**: Enhanced stack borders, scaling effects, and field positioning
 
 #### File Organization

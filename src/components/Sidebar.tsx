@@ -645,35 +645,35 @@ const Sidebar = ({
           <div style={{ display: 'flex', gap: '5px' }}>
             <button
               onClick={onZoomOut}
-              disabled={canvasZoom <= 0.5}
+              disabled={canvasZoom <= 0.5 || isFocusModeEnabled}
               style={{
                 flex: 1,
                 padding: '6px 8px',
                 fontSize: '12px',
-                backgroundColor: canvasZoom <= 0.5 ? '#f0f0f0' : '#f8f9fa',
-                color: canvasZoom <= 0.5 ? '#999' : '#333',
+                backgroundColor: (canvasZoom <= 0.5 || isFocusModeEnabled) ? '#f0f0f0' : '#f8f9fa',
+                color: (canvasZoom <= 0.5 || isFocusModeEnabled) ? '#999' : '#333',
                 border: '1px solid #ccc',
                 borderRadius: '4px',
-                cursor: canvasZoom <= 0.5 ? 'not-allowed' : 'pointer'
+                cursor: (canvasZoom <= 0.5 || isFocusModeEnabled) ? 'not-allowed' : 'pointer'
               }}
             >
-              🔍− Zoom Out
+              🔍−
             </button>
             <button
               onClick={onZoomIn}
-              disabled={canvasZoom >= 2}
+              disabled={canvasZoom >= 2 || isFocusModeEnabled}
               style={{
                 flex: 1,
                 padding: '6px 8px',
                 fontSize: '12px',
-                backgroundColor: canvasZoom >= 2 ? '#f0f0f0' : '#f8f9fa',
-                color: canvasZoom >= 2 ? '#999' : '#333',
+                backgroundColor: (canvasZoom >= 2 || isFocusModeEnabled) ? '#f0f0f0' : '#f8f9fa',
+                color: (canvasZoom >= 2 || isFocusModeEnabled) ? '#999' : '#333',
                 border: '1px solid #ccc',
                 borderRadius: '4px',
-                cursor: canvasZoom >= 2 ? 'not-allowed' : 'pointer'
+                cursor: (canvasZoom >= 2 || isFocusModeEnabled) ? 'not-allowed' : 'pointer'
               }}
             >
-              🔍+ Zoom In
+              🔍+
             </button>
           </div>
           <button
@@ -682,18 +682,20 @@ const Sidebar = ({
               width: '100%',
               padding: '6px 8px',
               fontSize: '12px',
-              backgroundColor: isFocusModeEnabled ? '#007bff' : '#f8f9fa',
+              backgroundColor: isFocusModeEnabled ? '#ff7b00' : '#f8f9fa',
               color: isFocusModeEnabled ? 'white' : '#333',
-              border: `1px solid ${isFocusModeEnabled ? '#007bff' : '#ccc'}`,
+              border: `1px solid ${isFocusModeEnabled ? '#ff7b00' : '#ccc'}`,
               borderRadius: '4px',
               cursor: 'pointer',
-              fontWeight: isFocusModeEnabled ? 'bold' : 'normal'
+              fontWeight: isFocusModeEnabled ? 'bold' : 'normal',
+              boxShadow: isFocusModeEnabled ? '0 0 6px rgba(255,123,0,0.4)' : 'none',
+              transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
               if (!isFocusModeEnabled) {
                 const target = e.target as HTMLElement;
                 target.style.backgroundColor = '#e9ecef';
-                target.style.borderColor = '#007bff';
+                target.style.borderColor = '#ff7b00';
               }
             }}
             onMouseLeave={(e) => {
@@ -704,7 +706,7 @@ const Sidebar = ({
               }
             }}
           >
-            {isFocusModeEnabled ? '🎯 Focus: ON' : '🎯 Focus Visible Cards'}
+            🎯 Focus Mode
           </button>
         </div>
       </div>

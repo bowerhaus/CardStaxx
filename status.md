@@ -2,15 +2,60 @@
 
 This document tracks the comprehensive implementation progress of the CardStaxx application according to the updated PRD specifications.
 
-## 🎯 Current Phase: Focus Mode Enhancement (COMPLETED)
-**Progress: 100% - Focus toggle feature implemented and refined**
+## 🎯 Current Phase: Focus Mode UI/UX Enhancement (IN PROGRESS)
+**Progress: 0% - Redesigning focus mode based on new requirements**
 
-### Recently Completed Work:
-- [x] **Focus Toggle Implementation**: Converted zoom reset button to focus toggle
-- [x] **Automatic Scale & Translation**: Focus mode automatically fits visible cards based on filters
-- [x] **Reactive Updates**: Focus recalculates when filters change
-- [x] **Markdown Text Scaling**: Fixed markdown content scaling with canvas zoom
-- [x] **Positioning Accuracy**: Fixed horizontal/vertical text positioning during scaling
+### New Focus Mode Requirements Implementation Plan:
+
+#### Phase 1: UI Component Updates
+- [ ] **1.1** Update focus button text to "Focus Mode" with target icon (🎯)
+- [ ] **1.2** Add visual highlight state for active focus mode (background color change)
+- [ ] **1.3** Disable zoom in/out buttons when focus mode is active
+- [ ] **1.4** Style focus button with proper hover/active states
+
+#### Phase 2: State Management Refactor  
+- [ ] **2.1** Add dual zoom/translation settings structure:
+  - `normalViewSettings: { scale, x, y }`
+  - `focusViewSettings: { scale, x, y }`
+- [ ] **2.2** Update focus mode toggle handler to preserve current settings
+- [ ] **2.3** Implement settings switching logic between modes
+- [ ] **2.4** Save/restore appropriate settings when toggling focus mode
+
+#### Phase 3: Canvas Integration
+- [ ] **3.1** Update Canvas component to apply correct settings based on mode
+- [ ] **3.2** Maintain smooth transitions between settings
+- [ ] **3.3** Ensure focus mode calculations work with dual settings system
+
+#### Phase 4: Testing & Polish
+- [ ] **4.1** Test focus mode toggle functionality
+- [ ] **4.2** Verify zoom button disable/enable behavior  
+- [ ] **4.3** Test settings preservation between mode switches
+- [ ] **4.4** Validate UI appearance and interactions
+
+### Technical Implementation Details:
+
+**State Structure Updates (App.tsx):**
+```typescript
+interface ViewSettings {
+  scale: number;
+  x: number;
+  y: number;
+}
+
+// New state variables needed:
+const [focusMode, setFocusMode] = useState(false);
+const [normalViewSettings, setNormalViewSettings] = useState<ViewSettings>({
+  scale: 1, x: 0, y: 0
+});
+const [focusViewSettings, setFocusViewSettings] = useState<ViewSettings>({
+  scale: 1, x: 0, y: 0
+});
+```
+
+**Key Components to Modify:**
+- **App.tsx**: Add dual settings state management
+- **Sidebar.tsx**: Update focus button appearance and disable zoom buttons
+- **Canvas.tsx**: Apply appropriate settings based on current mode
 
 ---
 

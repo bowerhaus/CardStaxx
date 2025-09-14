@@ -45,6 +45,7 @@ CardStaxx is a desktop visual knowledge management application designed to help 
 ### 🎛️ **Canvas Controls**
 - **Infinite Workspace**: Unlimited canvas space for spatial organization
 - **Zoom Controls**: 50%-200% zoom range with sidebar controls
+- **Focus Mode**: Toggle focus mode 🎯 to automatically frame visible cards, with disabled zoom controls and preserved view settings
 - **Responsive Layout**: Canvas automatically resizes with window changes
 - **Visual Feedback**: Real-time highlighting and selection indicators
 
@@ -58,7 +59,7 @@ CardStaxx is a desktop visual knowledge management application designed to help 
 
 ### ⌨️ **Keyboard Shortcuts**
 - **File Operations**: `Ctrl+N` (New), `Ctrl+O` (Open), `Ctrl+S` (Save), `Ctrl+Shift+S` (Save As)
-- **Canvas Navigation**: `Ctrl++` (Zoom In), `Ctrl+-` (Zoom Out), `Ctrl+0` (Reset Zoom)
+- **Canvas Navigation**: `Ctrl++` (Zoom In), `Ctrl+-` (Zoom Out), `F` (Focus Mode Toggle)
 - **Editing**: `Escape` (Cancel editing/connections)
 
 ## 🚀 Getting Started
