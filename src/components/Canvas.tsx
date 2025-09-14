@@ -50,6 +50,7 @@ interface CanvasProps {
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
+  onCardBreakOut: (cardId: string) => void;
   onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node) => void;
   onConnectionDelete: (connectionId: string) => void;
   editingCardId?: string | null;
@@ -81,6 +82,7 @@ const Canvas = React.memo(({
   onCardResize,
   onColorPickerOpen,
   onCardDelete,
+  onCardBreakOut,
   onConnectionLabelEdit,
   onConnectionDelete,
   editingCardId,
@@ -229,6 +231,7 @@ const Canvas = React.memo(({
               onCardResize={onCardResize}
               onColorPickerOpen={onColorPickerOpen}
               onCardDelete={onCardDelete}
+              onCardBreakOut={onCardBreakOut}
               editingCardId={editingCardId}
               editingField={editingField}
               editingStackId={editingStackId}

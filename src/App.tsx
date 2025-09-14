@@ -1340,6 +1340,56 @@ function App() {
     setDeleteConfirmCardId(null);
   };
 
+  const handleCardBreakOut = (cardId: string) => {
+    setStacks(prevStacks => {
+      let cardToBreakOut: NotecardData | null = null;
+      let sourceStackId: string | null = null;
+      
+      // Find the card and its source stack
+      for (const stack of prevStacks) {
+        const cardIndex = stack.cards.findIndex(card => card.id === cardId);
+        if (cardIndex !== -1) {
+          cardToBreakOut = stack.cards[cardIndex];
+          sourceStackId = stack.id;
+          break;
+        }
+      }
+      
+      if (!cardToBreakOut || !sourceStackId) {
+        return prevStacks; // Card not found
+      }
+      
+      // Find source stack position for offset
+      const sourceStack = prevStacks.find(s => s.id === sourceStackId);
+      if (!sourceStack) {
+        return prevStacks;
+      }
+      
+      // Remove card from source stack
+      const updatedStacks = prevStacks.map(stack => {
+        if (stack.id === sourceStackId) {
+          return {
+            ...stack,
+            cards: stack.cards.filter(card => card.id !== cardId)
+          };
+        }
+        return stack;
+      }).filter(stack => stack.cards.length > 0); // Remove empty stacks
+      
+      // Create new single-card stack at an offset position
+      const newStack: StackData = {
+        id: `stack-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        x: sourceStack.x + 50, // Offset to the right
+        y: sourceStack.y + 50, // Offset down
+        cards: [cardToBreakOut]
+      };
+      
+      return [...updatedStacks, newStack];
+    });
+    
+    setHasUnsavedChanges(true);
+  };
+
   const handleEditBlur = () => {
     if (editingCardId && editingField) {
       const currentCard = stacks.flatMap(s => s.cards).find(c => c.id === editingCardId);
@@ -1591,6 +1641,7 @@ function App() {
         onCardResize={handleCardResize} // Pass onCardResize
         onColorPickerOpen={handleColorPickerOpen} // Pass onColorPickerOpen
         onCardDelete={handleCardDeleteRequest} // Pass delete handler
+        onCardBreakOut={handleCardBreakOut} // Pass break out handler
         editingCardId={editingCardId} // Pass editing state
         editingField={editingField} // Pass editing field
         editingStackId={editingStackId} // Pass stack editing state
