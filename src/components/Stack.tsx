@@ -13,11 +13,13 @@ interface StackProps {
   onClick: (id: string) => void;
   onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
+  onStackTitleEditStart: (stackId: string, konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
   editingCardId?: string | null;
-  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
+  editingStackId?: string | null;
   highlightedCardIds?: Set<string>;
 }
 
@@ -31,11 +33,13 @@ const Stack = React.memo(({
   onClick,
   onUpdateCard,
   onEditStart,
+  onStackTitleEditStart,
   onCardResize,
   onColorPickerOpen,
   onCardDelete,
   editingCardId,
   editingField,
+  editingStackId,
   highlightedCardIds,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
@@ -109,7 +113,7 @@ const Stack = React.memo(({
         shadowOpacity={0.5}
       />
       
-      {/* "Card X of Y" header for multi-card stacks */}
+      {/* Stack title and card count for multi-card stacks */}
       {stack.cards.length > 1 && (() => {
         // The top visible card is the last card in the array (highest index)
         // Since scrolling rearranges the array, we need a better way to track position
@@ -117,15 +121,45 @@ const Stack = React.memo(({
         const sortedCards = [...stack.cards].sort((a, b) => a.id.localeCompare(b.id));
         const topCard = stack.cards[stack.cards.length - 1];
         const currentCardNumber = sortedCards.findIndex(card => card.id === topCard.id) + 1;
+        const stackTitle = stack.title || 'Untitled Stack';
+        const isEditingTitle = editingStackId === stack.id && editingField === 'stack-title';
         
         return (
           <>
-            {/* Header text - minimal spacing */}
+            {/* Stack title - left aligned, editable */}
             <Text
-              text={`Card ${currentCardNumber} of ${stack.cards.length}`}
+              text={stackTitle}
+              fontSize={10}
+              fill={isEditingTitle ? "#0066cc" : "#333"}
+              fontWeight={isEditingTitle ? "bold" : "normal"}
+              x={borderPadding + 1}
+              y={2}
+              fontFamily={FONT_FAMILY}
+              listening={true}
+              onDblClick={(e) => {
+                if (!isEditingTitle) {
+                  e.cancelBubble = true;
+                  onStackTitleEditStart(stack.id, e.target);
+                }
+              }}
+              onMouseEnter={(e) => {
+                if (!isEditingTitle) {
+                  e.target.getStage()!.container().style.cursor = 'text';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isEditingTitle) {
+                  e.target.getStage()!.container().style.cursor = 'default';
+                }
+              }}
+            />
+            
+            {/* Card count - right aligned */}
+            <Text
+              text={`${currentCardNumber}/${stack.cards.length}`}
               fontSize={10}
               fill="#666"
-              x={borderPadding + 1}
+              x={stackWidth - borderPadding - 30} // Position from right edge
               y={2}
               fontFamily={FONT_FAMILY}
               listening={false}

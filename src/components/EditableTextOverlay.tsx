@@ -10,7 +10,7 @@ interface EditableTextOverlayProps {
   value: string;
   isTextArea?: boolean;
   inputType?: string;
-  fieldType?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'connection';
+  fieldType?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'connection' | 'stack-title';
   onChange: (newValue: string) => void;
   onBlur: () => void;
 }

@@ -27,7 +27,7 @@ CardStaxx is an Electron-based desktop application for visual knowledge manageme
 
 #### Data Model (`src/types.ts`)
 - **NotecardData**: Individual notes with id, title, content, date (mandatory), tags, key, backgroundColor, and dimensions
-- **StackData**: Groups of cards with position (x, y) and cards array
+- **StackData**: Groups of cards with position (x, y), cards array, and optional editable title
 - **ConnectionData**: Directed relationships between stacks with optional labels
 - **Color Palette**: Predefined card background colors with utility functions
 - **Data Migration**: Backward compatibility utilities for existing files
@@ -46,9 +46,10 @@ CardStaxx is an Electron-based desktop application for visual knowledge manageme
 #### Key Features
 - **Spatial Canvas**: Infinite workspace for arranging notecards
 - **Enhanced Stack System**: Cards can be grouped into draggable stacks with improved visual hierarchy
+- **Editable Stack Titles**: Multi-card stacks support double-click-to-edit titles with X/Y card count display
 - **Rolodex View**: Visual browsing of cards within stacks with progressive scaling perspective effect
 - **Connections**: Drag-and-drop directed connections between stacks with optional labels
-- **In-place Editing**: Double-click to edit card titles and content
+- **In-place Editing**: Double-click to edit card titles, content, and stack titles
 - **Rich Card Fields**: Date, key, tags, and background color support with visual display
 - **Advanced Resize**: Card resize handles with proper mouse tracking and stack-wide resize functionality
 - **Focus Mode**: Toggle-able focus mode with target icon (🎯) that automatically frames visible cards, disables zoom controls when active, and maintains separate view settings for normal and focus modes

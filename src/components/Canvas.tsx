@@ -46,13 +46,15 @@ interface CanvasProps {
   onConnectionDragEnd: (endX: number, endY: number) => void;
   onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
+  onStackTitleEditStart: (stackId: string, konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
   onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node) => void;
   onConnectionDelete: (connectionId: string) => void;
   editingCardId?: string | null;
-  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
+  editingStackId?: string | null;
   editingConnectionId?: string | null;
   highlightedCardIds?: Set<string>;
   isTimelineVisible?: boolean;
@@ -75,6 +77,7 @@ const Canvas = React.memo(({
   onConnectionDragEnd,
   onUpdateCard,
   onEditStart,
+  onStackTitleEditStart,
   onCardResize,
   onColorPickerOpen,
   onCardDelete,
@@ -82,6 +85,7 @@ const Canvas = React.memo(({
   onConnectionDelete,
   editingCardId,
   editingField,
+  editingStackId,
   editingConnectionId,
   highlightedCardIds,
   isTimelineVisible,
@@ -221,11 +225,13 @@ const Canvas = React.memo(({
               onClick={() => {}} // onClick is no longer used for connections
               onUpdateCard={onUpdateCard}
               onEditStart={onEditStart}
+              onStackTitleEditStart={onStackTitleEditStart}
               onCardResize={onCardResize}
               onColorPickerOpen={onColorPickerOpen}
               onCardDelete={onCardDelete}
               editingCardId={editingCardId}
               editingField={editingField}
+              editingStackId={editingStackId}
               highlightedCardIds={highlightedCardIds}
             />
           ))}

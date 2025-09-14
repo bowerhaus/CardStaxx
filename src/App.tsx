@@ -48,6 +48,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
       id: 'characters-stack',
       x: 50,
       y: 50,
+      title: 'Key Characters',
       cards: [
         {
           id: 'frodo-card',
@@ -101,6 +102,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
       id: 'themes-stack',
       x: 600,
       y: 50,
+      title: 'Central Themes',
       cards: [
         {
           id: 'good-vs-evil-card',
@@ -154,6 +156,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
       id: 'visual-stack',
       x: 1200,
       y: 50,
+      title: 'Visual Storytelling',
       cards: [
         {
           id: 'cinematography-card',
@@ -207,6 +210,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
       id: 'plot-stack',
       x: 50,
       y: 600,
+      title: 'Major Plot Points',
       cards: [
         {
           id: 'ring-discovery-card',
@@ -260,6 +264,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
       id: 'literary-stack',
       x: 800,
       y: 600,
+      title: 'Literary Analysis',
       cards: [
         {
           id: 'tolkien-influences-card',
@@ -352,9 +357,12 @@ function App() {
 
   // State for card editing
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
-  const [editingField, setEditingField] = useState<'title' | 'content' | 'date' | 'key' | 'tags' | null>(null);
+  const [editingField, setEditingField] = useState<'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null>(null);
   const [editingKonvaNode, setEditingKonvaNode] = useState<Konva.Node | null>(null);
   const [editingTextValue, setEditingTextValue] = useState<string>('');
+
+  // State for stack editing
+  const [editingStackId, setEditingStackId] = useState<string | null>(null);
 
   // State for connection editing
   const [editingConnectionId, setEditingConnectionId] = useState<string | null>(null);
@@ -1172,6 +1180,15 @@ function App() {
     setHasUnsavedChanges(true);
   };
 
+  const handleUpdateStack = (stackId: string, updates: Partial<StackData>) => {
+    setStacks(
+      stacks.map(stack =>
+        stack.id === stackId ? { ...stack, ...updates } : stack
+      )
+    );
+    setHasUnsavedChanges(true);
+  };
+
   const handleCardResize = (cardId: string, newWidth: number, newHeight: number) => {
     setStacks(
       stacks.map(stack => {
@@ -1229,6 +1246,18 @@ function App() {
       setEditingTextValue(value);
     }
   }, [setEditingCardId, setEditingField, setEditingKonvaNode, stacks, setEditingTextValue]);
+
+  const handleStackTitleEditStart = useCallback((stackId: string, konvaNode: Konva.Node) => {
+    console.log('handleStackTitleEditStart called for stack:', stackId);
+    setEditingStackId(stackId);
+    setEditingField('stack-title');
+    setEditingKonvaNode(konvaNode);
+
+    const stack = stacks.find(s => s.id === stackId);
+    if (stack) {
+      setEditingTextValue(stack.title || '');
+    }
+  }, [setEditingStackId, setEditingField, setEditingKonvaNode, stacks, setEditingTextValue]);
 
   const handleColorChange = (cardId: string, newColor: string) => {
     handleUpdateCard(cardId, { backgroundColor: newColor });
@@ -1353,10 +1382,17 @@ function App() {
     } else if (editingConnectionId) {
       // Handle connection label editing
       handleConnectionUpdate(editingConnectionId, editingTextValue);
+    } else if (editingStackId && editingField === 'stack-title') {
+      // Handle stack title editing
+      const currentStack = stacks.find(s => s.id === editingStackId);
+      if (currentStack && editingTextValue !== (currentStack.title || '')) {
+        handleUpdateStack(editingStackId, { title: editingTextValue });
+      }
     }
     
     setEditingCardId(null);
     setEditingField(null);
+    setEditingStackId(null);
     setEditingConnectionId(null);
     setEditingKonvaNode(null);
     setEditingTextValue('');
@@ -1405,6 +1441,18 @@ function App() {
       };
       console.log('Connection Overlay Position:', calculatedPos);
       return calculatedPos;
+    }
+
+    // Handle stack title editing
+    if (editingField === 'stack-title') {
+      const stackTitlePos = {
+        x: stageRect.left + nodeAbsolutePosition.x,
+        y: stageRect.top + nodeAbsolutePosition.y,
+        width: Math.max(120, editingKonvaNode.width() || 120), // Minimum width for stack titles
+        height: 20,
+      };
+      console.log('Stack Title Overlay Position:', stackTitlePos);
+      return stackTitlePos;
     }
 
     // Handle card field editing
@@ -1529,11 +1577,13 @@ function App() {
         onConnectionDelete={handleConnectionDelete}
         onUpdateCard={handleUpdateCard} // Pass onUpdateCard
         onEditStart={handleEditStart} // Pass onEditStart
+        onStackTitleEditStart={handleStackTitleEditStart} // Pass stack title editing
         onCardResize={handleCardResize} // Pass onCardResize
         onColorPickerOpen={handleColorPickerOpen} // Pass onColorPickerOpen
         onCardDelete={handleCardDeleteRequest} // Pass delete handler
         editingCardId={editingCardId} // Pass editing state
         editingField={editingField} // Pass editing field
+        editingStackId={editingStackId} // Pass stack editing state
         editingConnectionId={editingConnectionId} // Pass connection editing state
         highlightedCardIds={highlightedCardIds} // Pass highlighted cards
         isTimelineVisible={isTimelineVisible} // Pass timeline visibility
@@ -1570,7 +1620,7 @@ function App() {
           />
         ) : null
       )}
-      {((editingCardId && editingField) || editingConnectionId) && (editingKonvaNode || (editingCardId && editingField === 'content')) && (
+      {(((editingCardId && editingField) || editingConnectionId || (editingStackId && editingField === 'stack-title')) && (editingKonvaNode || (editingCardId && editingField === 'content') || (editingStackId && editingField === 'stack-title'))) && (
         <EditableTextOverlay
           x={overlayPos.x}
           y={overlayPos.y}
