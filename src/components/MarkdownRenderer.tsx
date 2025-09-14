@@ -138,12 +138,76 @@ const MarkdownRenderer = ({
       <div 
         style={{
           ...overlayStyle,
-          pointerEvents: hasScrollableContent ? 'auto' : 'none', // Only capture events if scrollable
+          // Enable pointer events for scrollable content
+          pointerEvents: hasScrollableContent ? 'auto' : 'none',
         }}
         {...(hasScrollableContent && {
           onWheel: handleWheel,
           onMouseEnter: handleMouseEnter,
           onMouseLeave: handleMouseLeave,
+          onMouseMove: (e) => {
+            // Check if mouse is over the connection handle area and update cursor accordingly
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            // Calculate distance from center
+            const distanceFromCenter = Math.sqrt(
+              Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2)
+            );
+            
+            // Change cursor based on whether we're over the connection handle area
+            const target = e.currentTarget as HTMLElement;
+            if (distanceFromCenter <= 15) {
+              target.style.cursor = 'pointer';
+            } else {
+              target.style.cursor = 'auto';
+            }
+          },
+          onMouseDown: (e) => {
+            // Check if click is near the center (connection handle area)
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            // Calculate distance from center
+            const distanceFromCenter = Math.sqrt(
+              Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2)
+            );
+            
+            // If click is within handle area (15px radius), prevent this event and allow it to pass through
+            if (distanceFromCenter <= 15) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              // Temporarily disable pointer events to let the handle event through
+              const target = e.currentTarget as HTMLElement;
+              const originalPointerEvents = target.style.pointerEvents;
+              target.style.pointerEvents = 'none';
+              
+              // Trigger the mousedown event on the element below
+              const elementBelow = document.elementFromPoint(mouseX, mouseY);
+              if (elementBelow) {
+                const mouseEvent = new MouseEvent('mousedown', {
+                  bubbles: true,
+                  cancelable: true,
+                  clientX: mouseX,
+                  clientY: mouseY,
+                  button: e.button
+                });
+                elementBelow.dispatchEvent(mouseEvent);
+              }
+              
+              // Re-enable pointer events after a short delay
+              setTimeout(() => {
+                target.style.pointerEvents = originalPointerEvents;
+              }, 50);
+            }
+          },
           onDoubleClick: () => {
             if (onEditStart) {
               onEditStart(card.id, 'content');

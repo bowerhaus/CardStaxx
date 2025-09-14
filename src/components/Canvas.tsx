@@ -365,6 +365,18 @@ const Canvas = React.memo(({
                 // stroke="black" // Removed border
                 // strokeWidth={1} // Removed border
                 draggable
+                onMouseEnter={(e) => {
+                  const container = e.target.getStage()?.container();
+                  if (container) {
+                    container.style.cursor = 'pointer';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const container = e.target.getStage()?.container();
+                  if (container) {
+                    container.style.cursor = 'default';
+                  }
+                }}
                 onDragStart={(e) => {
                   e.target.moveToTop(); // Bring handle to top
                   onConnectionDragStart(stack.id, e.target.x(), e.target.y());

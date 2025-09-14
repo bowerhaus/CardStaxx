@@ -135,9 +135,13 @@ const Stack = React.memo(({
       {/* Stack title and card count for multi-card stacks */}
       {stack.cards.length > 1 && (() => {
         // The top visible card is the last card in the array (highest index)
-        // Since scrolling rearranges the array, we need a better way to track position
-        // For now, let's use a simpler approach: sort cards by ID to get stable ordering
-        const sortedCards = [...stack.cards].sort((a, b) => a.id.localeCompare(b.id));
+        // To get the correct position, we need to establish a stable ordering
+        // Use creation date as a stable sort key, falling back to ID if dates are equal
+        const sortedCards = [...stack.cards].sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateA !== dateB ? dateA - dateB : a.id.localeCompare(b.id);
+        });
         const topCard = stack.cards[stack.cards.length - 1];
         const currentCardNumber = sortedCards.findIndex(card => card.id === topCard.id) + 1;
         const stackTitle = stack.title || 'Untitled Stack';
