@@ -976,24 +976,34 @@ function App() {
     );
   };
 
-  const handleStackDragEnd = (draggedStackId: string, x: number, y: number) => {
+  const handleStackDragEnd = (draggedStackId: string, x: number, y: number, mouseX?: number, mouseY?: number) => {
     const draggedStack = stacks.find((s) => s.id === draggedStackId);
     if (!draggedStack) return;
 
+    // Use mouse position for collision detection if provided, otherwise fall back to stack position
+    const checkX = mouseX !== undefined ? mouseX : x;
+    const checkY = mouseY !== undefined ? mouseY : y;
+
     const targetStack = stacks.find(stack => {
       if (stack.id === draggedStackId) return false;
-      const topCard = stack.cards[0];
-      const stackWidth = topCard?.width || CARD_WIDTH;
-      const stackHeight = topCard?.height || CARD_HEIGHT;
-      const draggedTopCard = draggedStack.cards[0];
-      const draggedWidth = draggedTopCard?.width || CARD_WIDTH;
-      const draggedHeight = draggedTopCard?.height || CARD_HEIGHT;
       
+      // Calculate the visual bounds of the target stack (same as Stack component)
+      const topCard = stack.cards[0];
+      const baseCardWidth = topCard?.width || CARD_WIDTH;
+      const baseCardHeight = topCard?.height || CARD_HEIGHT;
+      const borderPadding = 10;
+      const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+      const HEADER_OFFSET = 40;
+      
+      const stackWidth = baseCardWidth + borderPadding * 2;
+      const stackHeight = baseCardHeight + (stack.cards.length - 1) * HEADER_OFFSET + borderPadding * 2 + headerTextSpace;
+      
+      // Check if mouse position is within the target stack's visual boundaries
       return (
-        x < stack.x + stackWidth &&
-        x + draggedWidth > stack.x &&
-        y < stack.y + stackHeight &&
-        y + draggedHeight > stack.y
+        checkX >= stack.x &&
+        checkX <= stack.x + stackWidth &&
+        checkY >= stack.y &&
+        checkY <= stack.y + stackHeight
       );
     });
 

@@ -7,7 +7,7 @@ import { FONT_FAMILY, CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 
 interface StackProps {
   stack: StackData;
-  onDragEnd: (id: string, x: number, y: number) => void;
+  onDragEnd: (id: string, x: number, y: number, mouseX?: number, mouseY?: number) => void;
   onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
@@ -55,7 +55,24 @@ const Stack = React.memo(({
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
-    onDragEnd(stack.id, e.target.x(), e.target.y());
+    // Get the mouse position at the time of drag end
+    const stage = e.target.getStage();
+    let mouseX: number | undefined;
+    let mouseY: number | undefined;
+    
+    if (stage) {
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        // Convert screen coordinates to canvas coordinates (accounting for zoom and translation)
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        const canvasPos = transform.point(pointerPos);
+        mouseX = canvasPos.x;
+        mouseY = canvasPos.y;
+      }
+    }
+    
+    onDragEnd(stack.id, e.target.x(), e.target.y(), mouseX, mouseY);
   };
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {

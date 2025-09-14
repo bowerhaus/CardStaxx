@@ -38,7 +38,7 @@ interface CanvasProps {
   connections: ConnectionData[];
   isConnecting: boolean;
   currentConnection: { fromStackId: string; toX: number; toY: number } | null;
-  onStackDragEnd: (id: string, x: number, y: number) => void;
+  onStackDragEnd: (id: string, x: number, y: number, mouseX?: number, mouseY?: number) => void;
   onStackDragMove: (id: string, x: number, y: number) => void;
   onStackWheel: (id: string, deltaY: number) => void;
   onConnectionDragStart: (fromStackId: string, startX: number, startY: number) => void;
