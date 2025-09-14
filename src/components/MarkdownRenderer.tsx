@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FONT_FAMILY } from '../constants/typography';
@@ -14,6 +14,7 @@ interface MarkdownRendererProps {
   backgroundColor?: string;
   cardPadding?: number;
   card: NotecardData;
+  onEditStart?: (cardId: string, field: 'content') => void;
 }
 
 const MarkdownRenderer = ({ 
@@ -25,8 +26,12 @@ const MarkdownRenderer = ({
   scale = 1,
   backgroundColor = '#ffffff',
   cardPadding = 10,
-  card
+  card,
+  onEditStart
 }: MarkdownRendererProps) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isOverContent, setIsOverContent] = useState(false);
+  const [hasScrollableContent, setHasScrollableContent] = useState(false);
   // Calculate content area position and size (exactly matching Notecard getContentY logic)
   // All measurements need to be scaled to match the canvas zoom
   const CONTENT_PADDING_TOP = 35;
@@ -45,6 +50,33 @@ const MarkdownRenderer = ({
   
   const contentHeight = height - scaledContentY - scaledBottomSpace;
   
+  // Check if content is scrollable
+  useEffect(() => {
+    if (contentRef.current) {
+      const isScrollable = contentRef.current.scrollHeight > contentRef.current.clientHeight;
+      setHasScrollableContent(isScrollable);
+    }
+  }, [content, contentHeight]);
+  
+  // Handle wheel events: scroll content when over text, allow stack scroll when outside
+  const handleWheel = (e: React.WheelEvent) => {
+    if (isOverContent && contentRef.current) {
+      const canScrollDown = contentRef.current.scrollTop < contentRef.current.scrollHeight - contentRef.current.clientHeight;
+      const canScrollUp = contentRef.current.scrollTop > 0;
+      
+      // Only prevent propagation (stack scroll) if we can actually scroll in the intended direction
+      if ((e.deltaY > 0 && canScrollDown) || (e.deltaY < 0 && canScrollUp)) {
+        e.stopPropagation();
+        // Let the default scroll behavior happen
+      }
+    }
+    // If we can't scroll or mouse isn't over content, let the event propagate to stack
+  };
+
+  // Track mouse enter/leave for content area
+  const handleMouseEnter = () => setIsOverContent(true);
+  const handleMouseLeave = () => setIsOverContent(false);
+  
   // Calculate content positioning to match Notecard exactly
   
   const overlayStyle: React.CSSProperties = {
@@ -59,12 +91,12 @@ const MarkdownRenderer = ({
     padding: '0',
     margin: '0',
     boxSizing: 'border-box',
-    overflow: 'hidden', // Hide overflow like Konva text
+    overflow: 'auto', // Enable scrolling
     zIndex: 100, // Below editing overlays but above canvas
     fontSize: `${14 * scale}px`,
     fontFamily: FONT_FAMILY,
     lineHeight: '1.4',
-    pointerEvents: 'none', // Don't interfere with double-click to edit
+    // pointerEvents handled inline to enable wheel while allowing clicks through
   };
 
   const markdownStyles: React.CSSProperties = {
@@ -74,8 +106,26 @@ const MarkdownRenderer = ({
     lineHeight: '1.4',
     color: '#333',
     height: '100%',
-    overflow: 'hidden',
+    minHeight: '100%', // Ensure content can expand
   };
+
+  // Custom scrollbar styling
+  const scrollbarStyles = `
+    .markdown-content::-webkit-scrollbar {
+      width: ${Math.max(8, 8 * scale)}px;
+    }
+    .markdown-content::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
+      border-radius: 4px;
+    }
+    .markdown-content::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.3);
+      border-radius: 4px;
+    }
+    .markdown-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,0,0,0.5);
+    }
+  `;
 
   // Don't render if content is empty
   if (!content || content.trim() === '') {
@@ -83,13 +133,35 @@ const MarkdownRenderer = ({
   }
 
   return (
-    <div style={overlayStyle}>
-      <div style={markdownStyles}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {content}
-        </ReactMarkdown>
+    <>
+      <style>{scrollbarStyles}</style>
+      <div 
+        style={{
+          ...overlayStyle,
+          pointerEvents: hasScrollableContent ? 'auto' : 'none', // Only capture events if scrollable
+        }}
+        {...(hasScrollableContent && {
+          onWheel: handleWheel,
+          onMouseEnter: handleMouseEnter,
+          onMouseLeave: handleMouseLeave,
+          onDoubleClick: () => {
+            if (onEditStart) {
+              onEditStart(card.id, 'content');
+            }
+          },
+        })}
+      >
+        <div 
+          style={markdownStyles}
+          ref={contentRef}
+          className="markdown-content"
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {content}
+          </ReactMarkdown>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

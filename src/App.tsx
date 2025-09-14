@@ -1363,6 +1363,27 @@ function App() {
   };
 
   const getOverlayPosition = () => {
+    // Handle MarkdownRenderer-triggered editing
+    if (!editingKonvaNode && editingCardId && editingField === 'content') {
+      // Find the card position from cardPositions
+      const cardPos = cardPositions.find(pos => pos.card.id === editingCardId);
+      if (cardPos) {
+        // Use the same positioning logic as MarkdownRenderer
+        const CONTENT_PADDING_TOP = 35;
+        let baseContentY = CONTENT_PADDING_TOP;
+        if (cardPos.card.date) baseContentY = Math.max(baseContentY, 56);
+        baseContentY = Math.max(baseContentY, cardPos.card.date ? 82 : 64);
+        const TITLE_PADDING = 10;
+        
+        return {
+          x: cardPos.x + TITLE_PADDING * cardPos.scale,
+          y: cardPos.y + baseContentY * cardPos.scale,
+          width: cardPos.width - TITLE_PADDING * 2 * cardPos.scale,
+          height: cardPos.height - baseContentY * cardPos.scale - 40 * cardPos.scale,
+        };
+      }
+    }
+    
     if (!editingKonvaNode) return { x: 0, y: 0, width: 0, height: 0 };
 
     const stage = editingKonvaNode.getStage();
@@ -1396,8 +1417,6 @@ function App() {
     console.log('Card Overlay Position:', calculatedPos, 'Field:', editingField);
     return calculatedPos;
   };
-
-  const overlayPos = getOverlayPosition();
 
   // Function to get card positions for markdown rendering
   const getCardScreenPositions = () => {
@@ -1464,6 +1483,8 @@ function App() {
   const filteredStacks = getFilteredStacks();
   const availableTags = getAllTags();
   const availableKeys = getAllKeys();
+  
+  const overlayPos = getOverlayPosition();
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -1534,10 +1555,22 @@ function App() {
             scale={scale}
             backgroundColor={card.backgroundColor}
             card={card}
+            onEditStart={(cardId, field) => {
+              // For MarkdownRenderer, we don't have a Konva node, but we can trigger edit mode
+              setEditingCardId(cardId);
+              setEditingField(field);
+              // Find the card and set its current content as the editing value
+              const targetCard = stacks.flatMap(s => s.cards).find(c => c.id === cardId);
+              if (targetCard && field === 'content') {
+                setEditingTextValue(targetCard.content || '');
+              }
+              // We'll set a dummy position for the editing overlay - it will recalculate properly
+              setEditingKonvaNode(null);
+            }}
           />
         ) : null
       )}
-      {((editingCardId && editingField) || editingConnectionId) && editingKonvaNode && (
+      {((editingCardId && editingField) || editingConnectionId) && (editingKonvaNode || (editingCardId && editingField === 'content')) && (
         <EditableTextOverlay
           x={overlayPos.x}
           y={overlayPos.y}
