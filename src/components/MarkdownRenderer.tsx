@@ -36,10 +36,12 @@ const MarkdownRenderer = ({
   baseContentY = Math.max(baseContentY, card.date ? 82 : 64); // Space for key icon (with or without date)
   const baseBottomSpace = 40; // Bottom space for tags and icons at 100% scale
   const basePadding = cardPadding; // Card padding at 100% scale
+  const TITLE_PADDING = 10; // This should match Notecard TITLE_PADDING
   
   const scaledContentY = baseContentY * scale;
   const scaledBottomSpace = baseBottomSpace * scale;
   const scaledPadding = basePadding * scale;
+  const scaledTitlePadding = TITLE_PADDING * scale;
   
   const contentHeight = height - scaledContentY - scaledBottomSpace;
   
@@ -47,9 +49,9 @@ const MarkdownRenderer = ({
   
   const overlayStyle: React.CSSProperties = {
     position: 'absolute',
-    top: `${y + scaledContentY}px`,
-    left: `${x + scaledPadding}px`,
-    width: `${width - scaledPadding * 2}px`,
+    top: `${y + scaledContentY + 3}px`,
+    left: `${x + scaledTitlePadding - 23}px`,
+    width: `${width - scaledTitlePadding * 2}px`,
     height: `${contentHeight}px`,
     backgroundColor: 'transparent', // Transparent background to match card
     border: 'none',
