@@ -24,7 +24,8 @@ interface SidebarProps {
   canvasZoom: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onZoomReset: () => void;
+  onFocusToggle: () => void;
+  isFocusModeEnabled: boolean;
 }
 
 const Sidebar = ({ 
@@ -49,7 +50,8 @@ const Sidebar = ({
   canvasZoom,
   onZoomIn,
   onZoomOut,
-  onZoomReset
+  onFocusToggle,
+  isFocusModeEnabled
 }: SidebarProps) => {
   const getFileName = () => {
     if (!currentFilePath) return 'Untitled';
@@ -675,19 +677,34 @@ const Sidebar = ({
             </button>
           </div>
           <button
-            onClick={onZoomReset}
+            onClick={onFocusToggle}
             style={{
               width: '100%',
               padding: '6px 8px',
               fontSize: '12px',
-              backgroundColor: canvasZoom === 1 ? '#e9ecef' : '#f8f9fa',
-              color: '#333',
-              border: '1px solid #ccc',
+              backgroundColor: isFocusModeEnabled ? '#007bff' : '#f8f9fa',
+              color: isFocusModeEnabled ? 'white' : '#333',
+              border: `1px solid ${isFocusModeEnabled ? '#007bff' : '#ccc'}`,
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontWeight: isFocusModeEnabled ? 'bold' : 'normal'
+            }}
+            onMouseEnter={(e) => {
+              if (!isFocusModeEnabled) {
+                const target = e.target as HTMLElement;
+                target.style.backgroundColor = '#e9ecef';
+                target.style.borderColor = '#007bff';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isFocusModeEnabled) {
+                const target = e.target as HTMLElement;
+                target.style.backgroundColor = '#f8f9fa';
+                target.style.borderColor = '#ccc';
+              }
             }}
           >
-            🎯 Reset (100%)
+            {isFocusModeEnabled ? '🎯 Focus: ON' : '🎯 Focus Visible Cards'}
           </button>
         </div>
       </div>

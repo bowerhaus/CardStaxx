@@ -100,8 +100,10 @@ function App() {
   // State for timeline
   const [isTimelineVisible, setIsTimelineVisible] = useState<boolean>(false);
 
-  // State for canvas zoom
+  // State for canvas zoom and focus mode
   const [canvasZoom, setCanvasZoom] = useState<number>(1); // 1 = 100%
+  const [canvasTranslate, setCanvasTranslate] = useState<{x: number; y: number}>({x: 0, y: 0});
+  const [isFocusModeEnabled, setIsFocusModeEnabled] = useState<boolean>(false);
 
   // Zoom handlers
   const handleZoomIn = () => {
@@ -116,7 +118,26 @@ function App() {
 
   const handleZoomReset = () => {
     setCanvasZoom(1); // Reset to 100%
+    setCanvasTranslate({x: 0, y: 0}); // Reset translation
+    setIsFocusModeEnabled(false); // Disable focus mode
     setHasUnsavedChanges(false); // Zoom doesn't mark as unsaved
+  };
+
+
+  const handleFocusToggle = () => {
+    if (isFocusModeEnabled) {
+      // Turn off focus mode - reset to normal view
+      setCanvasZoom(1);
+      setCanvasTranslate({x: 0, y: 0});
+      setIsFocusModeEnabled(false);
+    } else {
+      // Turn on focus mode - fit visible cards
+      const { zoom, translate } = calculateFocusTransform();
+      setCanvasZoom(zoom);
+      setCanvasTranslate(translate);
+      setIsFocusModeEnabled(true);
+    }
+    setHasUnsavedChanges(false); // Focus mode changes don't mark as unsaved
   };
 
   // Keyboard shortcuts
@@ -163,7 +184,7 @@ function App() {
             break;
           case '0':
             e.preventDefault();
-            handleZoomReset();
+            handleFocusToggle();
             break;
         }
       }
@@ -297,12 +318,91 @@ function App() {
     return Array.from(keySet).sort();
   }, [stacks]);
 
+  // Extracted focus calculation logic
+  const calculateFocusTransform = useCallback(() => {
+    const filteredStacks = getFilteredStacks();
+    console.log('Focus mode: filteredStacks', filteredStacks.length);
+    if (filteredStacks.length === 0) {
+      // No cards to focus on, just reset
+      console.log('No filtered stacks, resetting to default');
+      return { zoom: 1, translate: { x: 0, y: 0 } };
+    }
+
+    // Calculate bounding box of all visible cards
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const SIDEBAR_WIDTH = 270;
+    const CANVAS_MARGIN = 50; // Margin around focused area
+    
+    filteredStacks.forEach(stack => {
+      if (stack.cards && stack.cards.length > 0) {
+        const topCard = stack.cards[stack.cards.length - 1]; // Most visible card
+        const cardWidth = topCard.width || CARD_WIDTH;
+        const cardHeight = topCard.height || CARD_HEIGHT;
+        
+        // Calculate stack bounds (similar to getStackCenterPosition)
+        const borderPadding = 10;
+        const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+        const cardIndex = stack.cards.length - 1;
+        const HEADER_OFFSET = 40;
+        
+        const xOffset = borderPadding;
+        const yOffset = borderPadding + headerTextSpace + cardIndex * HEADER_OFFSET;
+        
+        const stackLeft = stack.x + xOffset;
+        const stackTop = stack.y + yOffset;
+        const stackRight = stackLeft + cardWidth;
+        const stackBottom = stackTop + cardHeight;
+        
+        minX = Math.min(minX, stackLeft);
+        minY = Math.min(minY, stackTop);
+        maxX = Math.max(maxX, stackRight);
+        maxY = Math.max(maxY, stackBottom);
+      }
+    });
+    
+    // Calculate canvas dimensions (excluding sidebar)
+    const canvasWidth = window.innerWidth - SIDEBAR_WIDTH;
+    const canvasHeight = window.innerHeight;
+    
+    // Calculate content dimensions
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    
+    console.log('Content bounds:', {minX, minY, maxX, maxY, contentWidth, contentHeight});
+    console.log('Canvas dimensions:', {canvasWidth, canvasHeight});
+    
+    // Calculate scale to fit content with margin
+    const scaleX = (canvasWidth - CANVAS_MARGIN * 2) / contentWidth;
+    const scaleY = (canvasHeight - CANVAS_MARGIN * 2) / contentHeight;
+    const scale = Math.min(scaleX, scaleY, 2); // Max 200% zoom
+    
+    // Calculate translation to center content
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const translateX = (canvasWidth / 2) / scale - centerX;
+    const translateY = (canvasHeight / 2) / scale - centerY;
+    
+    console.log('Focus calculations:', {scale, centerX, centerY, translateX, translateY});
+    
+    return { zoom: scale, translate: { x: translateX, y: translateY } };
+  }, [stacks, searchFilters]);
+
   // Update search results when filters or stacks change
   useEffect(() => {
     const results = performSearch(searchFilters);
     setSearchResults(results);
     setHighlightedCardIds(new Set(results.map(r => r.cardId)));
   }, [searchFilters, performSearch]);
+
+  // Auto-update focus transform when filters change and focus mode is enabled
+  useEffect(() => {
+    if (isFocusModeEnabled) {
+      console.log('Focus mode is enabled, recalculating transform due to filter change');
+      const { zoom, translate } = calculateFocusTransform();
+      setCanvasZoom(zoom);
+      setCanvasTranslate(translate);
+    }
+  }, [searchFilters, stacks, isFocusModeEnabled, calculateFocusTransform]);
 
   const handleSearchChange = (searchText: string) => {
     setSearchFilters(prev => ({ ...prev, searchText }));
@@ -952,6 +1052,7 @@ function App() {
       y: number;
       width: number;
       height: number;
+      scale: number;
       isEditing: boolean;
     }> = [];
 
@@ -970,16 +1071,32 @@ function App() {
         // Calculate the position of the top card within the stack (same logic as Stack component)
         const totalCards = stack.cards.length;
         const topCardIndex = totalCards - 1;
-        const scale = 1.0; // Top card is always full scale
-        const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
-        const yOffset = borderPadding + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
+        const cardScale = 1.0; // Top card is always full scale within the stack
+        const xOffset = borderPadding + (cardWidth * (1 - cardScale)) / 2;
+        const yOffset = borderPadding + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - cardScale)) / 2;
+        
+        // Apply canvas transformation (zoom and translation)
+        const canvasX = stack.x + xOffset;
+        const canvasY = stack.y + yOffset;
+        
+        
+        // Apply the same transformation as the Konva Stage:
+        // Konva Stage has: x={canvasTranslate.x * canvasZoom}, y={canvasTranslate.y * canvasZoom}, scaleX={canvasZoom}, scaleY={canvasZoom}
+        // In Konva's transformation matrix: final = original * scale + translation
+        // But since the translation is already pre-scaled by canvasZoom, we need:
+        // final = original * scale + (pre-scaled translation)
+        const screenX = SIDEBAR_WIDTH + (canvasX * canvasZoom) + (canvasTranslate.x * canvasZoom);
+        const screenY = (canvasY * canvasZoom) + (canvasTranslate.y * canvasZoom);
+        const screenWidth = cardWidth * canvasZoom;
+        const screenHeight = cardHeight * canvasZoom;
         
         positions.push({
           card: topCard,
-          x: SIDEBAR_WIDTH + stack.x + xOffset, // Add sidebar offset + card offset within stack
-          y: stack.y + yOffset, // Add card offset within stack
-          width: cardWidth,
-          height: cardHeight,
+          x: screenX,
+          y: screenY,
+          width: screenWidth,
+          height: screenHeight,
+          scale: canvasZoom, // Pass the canvas zoom as scale for font sizing
           isEditing: editingCardId === topCard.id && editingField === 'content'
         });
       }
@@ -1017,7 +1134,8 @@ function App() {
         canvasZoom={canvasZoom}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
-        onZoomReset={handleZoomReset}
+        onFocusToggle={handleFocusToggle}
+        isFocusModeEnabled={isFocusModeEnabled}
       />
       <Canvas
         stacks={filteredStacks}
@@ -1045,9 +1163,10 @@ function App() {
         onTimelineCardClick={handleTimelineCardClick} // Pass timeline click handler
         onTimelineCardHover={handleTimelineCardHover} // Pass timeline hover handler
         canvasZoom={canvasZoom} // Pass canvas zoom
+        canvasTranslate={canvasTranslate} // Pass canvas translation
       />
       {/* Markdown renderers for card content */}
-      {cardPositions.map(({ card, x, y, width, height, isEditing }) => 
+      {cardPositions.map(({ card, x, y, width, height, scale, isEditing }) => 
         !isEditing && card.content && card.content.trim() !== '' ? (
           <MarkdownRenderer
             key={`markdown-${card.id}`}
@@ -1056,7 +1175,9 @@ function App() {
             y={y}
             width={width}
             height={height}
+            scale={scale}
             backgroundColor={card.backgroundColor}
+            card={card}
           />
         ) : null
       )}

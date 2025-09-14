@@ -58,6 +58,7 @@ interface CanvasProps {
   onTimelineCardClick?: (cardId: string) => void;
   onTimelineCardHover?: (cardId: string | null) => void;
   canvasZoom?: number;
+  canvasTranslate?: {x: number; y: number};
 }
 
 const Canvas = React.memo(({
@@ -85,7 +86,8 @@ const Canvas = React.memo(({
   isTimelineVisible,
   onTimelineCardClick,
   onTimelineCardHover,
-  canvasZoom = 1
+  canvasZoom = 1,
+  canvasTranslate = {x: 0, y: 0}
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   
@@ -202,6 +204,8 @@ const Canvas = React.memo(({
         height={canvasHeight}
         scaleX={canvasZoom}
         scaleY={canvasZoom}
+        x={canvasTranslate.x * canvasZoom}
+        y={canvasTranslate.y * canvasZoom}
         onMouseMove={handleMouseMove}
       >
         {/* Layer for Stacks (background) */}
