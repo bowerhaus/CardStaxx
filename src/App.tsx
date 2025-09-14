@@ -678,6 +678,10 @@ function App() {
     setConnections(prevConnections => 
       prevConnections.filter(conn => conn.id !== connectionId)
     );
+    // Clear editing state when connection is deleted
+    setEditingConnectionId(null);
+    setEditingKonvaNode(null);
+    setEditingTextValue('');
     setHasUnsavedChanges(true);
   };
 

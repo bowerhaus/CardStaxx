@@ -301,8 +301,9 @@ const Canvas = React.memo(({
                     verticalAlign="middle"
                     offsetX={6}
                     offsetY={-12}
-                    onClick={(e) => {
+                    onMouseDown={(e) => {
                       e.cancelBubble = true;
+                      e.evt.preventDefault();
                       onConnectionDelete(connection.id);
                     }}
                     visible={editingConnectionId === connection.id}
