@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NotecardData, SearchFilters, SearchResult } from '../types';
+import { FONT_FAMILY } from '../constants/typography';
 
 interface SidebarProps {
   onCreateCard: (cardData?: Partial<NotecardData>) => void;
@@ -93,7 +94,7 @@ const Sidebar = ({
       height: '100vh', 
       backgroundColor: '#fafafa', 
       overflowY: 'auto', 
-      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontFamily: FONT_FAMILY,
       boxShadow: '2px 0 8px rgba(0,0,0,0.05)'
     }}>
       <div style={{ marginBottom: '24px' }}>

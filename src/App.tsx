@@ -6,6 +6,7 @@ import ColorPicker from './components/ColorPicker';
 import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS, SearchFilters, SearchResult } from './types';
+import { CARD_WIDTH, CARD_HEIGHT } from './constants/typography';
 import Konva from 'konva'; // Import Konva for Node type
 
 // Data migration utility for backward compatibility
@@ -35,8 +36,6 @@ const migrateWorkspaceData = (data: any): WorkspaceData => {
   };
 };
 
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 

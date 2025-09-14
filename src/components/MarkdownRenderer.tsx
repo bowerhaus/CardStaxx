@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { FONT_FAMILY } from '../constants/typography';
 
 interface MarkdownRendererProps {
   content: string;
@@ -40,7 +41,7 @@ const MarkdownRenderer = ({
     overflow: 'hidden', // Hide overflow like Konva text
     zIndex: 100, // Below editing overlays but above canvas
     fontSize: '14px',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_FAMILY,
     lineHeight: '1.4',
     pointerEvents: 'none', // Don't interfere with double-click to edit
   };

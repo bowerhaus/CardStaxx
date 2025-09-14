@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import { NotecardData, CARD_COLORS } from '../types';
+import { CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 import Konva from 'konva';
 
 interface NotecardProps {
@@ -14,8 +15,6 @@ interface NotecardProps {
   isHighlighted?: boolean;
 }
 
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 150;
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 

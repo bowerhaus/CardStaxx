@@ -1,5 +1,6 @@
 import React from 'react';
 import { CARD_COLORS, CardColor } from '../types';
+import { FONT_FAMILY } from '../constants/typography';
 
 interface ColorPickerProps {
   selectedColor: string;
@@ -42,7 +43,7 @@ const ColorPicker = ({ selectedColor, onColorSelect, onClose, x, y }: ColorPicke
         fontWeight: 'bold', 
         marginBottom: '8px',
         color: '#333',
-        fontFamily: 'Arial, sans-serif'
+        fontFamily: FONT_FAMILY
       }}>
         Background Color
       </div>
@@ -98,7 +99,7 @@ const ColorPicker = ({ selectedColor, onColorSelect, onClose, x, y }: ColorPicke
           cursor: 'pointer',
           fontSize: '12px',
           color: '#666',
-          fontFamily: 'Arial, sans-serif'
+          fontFamily: FONT_FAMILY
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = '#e0e0e0';

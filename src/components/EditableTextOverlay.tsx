@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import Konva from 'konva';
+import { FONT_FAMILY } from '../constants/typography';
 
 interface EditableTextOverlayProps {
   x: number;
@@ -88,7 +89,7 @@ const EditableTextOverlay = ({
         ...commonStyle, 
         resize: 'none', 
         fontSize: '12px',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
         lineHeight: '1.2',
       }}
     />
@@ -104,7 +105,7 @@ const EditableTextOverlay = ({
         ...commonStyle, 
         fontSize: fieldType === 'connection' ? '10px' : fieldType === 'key' ? '12px' : fieldType === 'tags' ? '12px' : inputType === 'date' ? '14px' : fieldType === 'content' ? '14px' : '16px', 
         fontWeight: fieldType === 'connection' || fieldType === 'key' || fieldType === 'tags' || fieldType === 'content' || inputType === 'date' ? 'normal' : 'bold',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: FONT_FAMILY,
         lineHeight: '1',
       }}
     />

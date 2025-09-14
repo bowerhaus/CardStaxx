@@ -3,6 +3,7 @@ import { Group, Rect, Text } from 'react-konva';
 import Konva from 'konva';
 import Notecard from './Notecard';
 import { StackData, NotecardData } from '../types';
+import { FONT_FAMILY, CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 
 interface StackProps {
   stack: StackData;
@@ -20,8 +21,6 @@ interface StackProps {
   highlightedCardIds?: Set<string>;
 }
 
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 150;
 const HEADER_OFFSET = 40;
 
 const Stack = React.memo(({
@@ -128,7 +127,7 @@ const Stack = React.memo(({
               fill="#666"
               x={borderPadding + 1}
               y={2}
-              fontFamily="Arial, sans-serif"
+              fontFamily={FONT_FAMILY}
               listening={false}
             />
           </>

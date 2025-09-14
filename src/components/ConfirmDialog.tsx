@@ -1,4 +1,5 @@
 import React from 'react';
+import { FONT_FAMILY } from '../constants/typography';
 
 interface ConfirmDialogProps {
   title: string;
@@ -33,7 +34,7 @@ const ConfirmDialog = ({
     zIndex: 10000, // High z-index to appear above everything
     minWidth: '200px',
     maxWidth: '300px',
-    fontFamily: 'Arial, sans-serif',
+    fontFamily: FONT_FAMILY,
   };
 
   const titleStyle: React.CSSProperties = {

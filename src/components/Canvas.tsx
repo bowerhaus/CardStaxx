@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Line, Circle, Text, Group, Rect } from 'react-konva'; // Import Circle, Text, Group, Rect
 import { StackData, ConnectionData, NotecardData } from '../types';
+import { FONT_FAMILY, CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 import Stack from './Stack';
 import Konva from 'konva'; // Import Konva for event types
 
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 150;
 const HANDLE_SIZE = 10; // Size of the connection handle
 const HEADER_OFFSET = 40; // Added HEADER_OFFSET
 
@@ -280,7 +279,7 @@ const Canvas = React.memo(({
                   <Text
                     text={connection.label || '+'}
                     fontSize={10}
-                    fontFamily="Arial"
+                    fontFamily={FONT_FAMILY}
                     fontStyle="normal"
                     fill={connection.label ? "black" : "grey"}
                     align="center"
@@ -295,7 +294,7 @@ const Canvas = React.memo(({
                   <Text
                     text="×"
                     fontSize={12}
-                    fontFamily="Arial"
+                    fontFamily={FONT_FAMILY}
                     fill="red"
                     align="center"
                     verticalAlign="middle"

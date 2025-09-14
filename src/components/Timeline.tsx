@@ -1,9 +1,8 @@
 import React from 'react';
 import { StackData } from '../types';
+import { CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 
-// Default card dimensions
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 150;
+// Default card dimensions (imported from constants)
 const HEADER_OFFSET = 40;
 
 // Utility function to calculate the center position of a stack (center of most visible card - topmost)
