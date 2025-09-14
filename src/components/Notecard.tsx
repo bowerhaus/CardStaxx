@@ -62,7 +62,7 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, is
       <Text
         ref={titleTextRef}
         text={card.title}
-        fontSize={16}
+        fontSize={14}
         fontStyle="bold"
         padding={TITLE_PADDING}
         width={cardWidth}
