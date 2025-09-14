@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NotecardData, SearchFilters, SearchResult } from '../types';
 import { FONT_FAMILY } from '../constants/typography';
+import { LAYOUT } from '../constants/layout';
 
 interface SidebarProps {
   onCreateCard: (cardData?: Partial<NotecardData>) => void;
@@ -92,7 +93,7 @@ const Sidebar = ({
 
   return (
     <div style={{ 
-      width: '280px', 
+      width: `${LAYOUT.SIDEBAR_WIDTH}px`, 
       borderRight: '1px solid #e0e0e0', 
       padding: '20px', 
       height: '100vh', 
@@ -150,6 +151,42 @@ const Sidebar = ({
           {getFileName()}{hasUnsavedChanges ? ' *' : ''}
         </div>
       </div>
+      
+      <button 
+        onClick={onLoadDemo} 
+        style={{ 
+          width: '100%', 
+          padding: '10px 16px',
+          marginBottom: '16px',
+          fontSize: '13px',
+          fontWeight: '500',
+          backgroundColor: '#6c5ce7',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 2px 4px rgba(108,92,231,0.2)'
+        }}
+        onMouseEnter={(e) => {
+          const target = e.target as HTMLElement;
+          target.style.backgroundColor = '#5b4fd1';
+          target.style.transform = 'translateY(-1px)';
+          target.style.boxShadow = '0 4px 8px rgba(108,92,231,0.3)';
+        }}
+        onMouseLeave={(e) => {
+          const target = e.target as HTMLElement;
+          target.style.backgroundColor = '#6c5ce7';
+          target.style.transform = 'translateY(0)';
+          target.style.boxShadow = '0 2px 4px rgba(108,92,231,0.2)';
+        }}
+      >
+        📽️ Load Movie Demo
+      </button>
       
       <div style={{ 
         display: 'flex', 
@@ -272,6 +309,14 @@ const Sidebar = ({
         </button>
       </div>
       
+      {/* Divider */}
+      <div style={{
+        width: '100%',
+        height: '1px',
+        backgroundColor: '#e0e0e0',
+        marginBottom: '20px'
+      }}></div>
+      
       <button 
         onClick={handleNewCard} 
         style={{ 
@@ -306,42 +351,6 @@ const Sidebar = ({
         }}
       >
         ➕ Create New Card
-      </button>
-      
-      <button 
-        onClick={onLoadDemo} 
-        style={{ 
-          width: '100%', 
-          padding: '10px 16px',
-          marginBottom: '24px',
-          fontSize: '13px',
-          fontWeight: '500',
-          backgroundColor: '#6c5ce7',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          transition: 'all 0.2s ease',
-          boxShadow: '0 2px 4px rgba(108,92,231,0.2)'
-        }}
-        onMouseEnter={(e) => {
-          const target = e.target as HTMLElement;
-          target.style.backgroundColor = '#5b4fd1';
-          target.style.transform = 'translateY(-1px)';
-          target.style.boxShadow = '0 4px 8px rgba(108,92,231,0.3)';
-        }}
-        onMouseLeave={(e) => {
-          const target = e.target as HTMLElement;
-          target.style.backgroundColor = '#6c5ce7';
-          target.style.transform = 'translateY(0)';
-          target.style.boxShadow = '0 2px 4px rgba(108,92,231,0.2)';
-        }}
-      >
-        📽️ Load Movie Demo
       </button>
       
       {/* Search Section */}

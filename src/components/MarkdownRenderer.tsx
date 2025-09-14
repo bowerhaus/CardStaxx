@@ -49,8 +49,8 @@ const MarkdownRenderer = ({
   
   const overlayStyle: React.CSSProperties = {
     position: 'absolute',
-    top: `${y + scaledContentY + 3}px`,
-    left: `${x + scaledTitlePadding - 23}px`,
+    top: `${y + scaledContentY}px`,
+    left: `${x + scaledTitlePadding}px`,
     width: `${width - scaledTitlePadding * 2}px`,
     height: `${contentHeight}px`,
     backgroundColor: 'transparent', // Transparent background to match card

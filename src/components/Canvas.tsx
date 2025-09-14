@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Stage, Layer, Line, Circle, Text, Group, Rect } from 'react-konva'; // Import Circle, Text, Group, Rect
 import { StackData, ConnectionData, NotecardData } from '../types';
 import { FONT_FAMILY, CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
+import { LAYOUT } from '../constants/layout';
 import Stack from './Stack';
 import Konva from 'konva'; // Import Konva for event types
 
@@ -92,12 +93,12 @@ const Canvas = React.memo(({
   console.log('Canvas received onEditStart:', onEditStart);
   
   // Canvas dimensions with resize listener
-  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - 270);
+  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
   const [canvasHeight, setCanvasHeight] = useState(window.innerHeight);
 
   useEffect(() => {
     const handleResize = () => {
-      setCanvasWidth(window.innerWidth - 270);
+      setCanvasWidth(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
       setCanvasHeight(window.innerHeight);
     };
 
@@ -198,7 +199,7 @@ const Canvas = React.memo(({
   };
 
   return (
-    <div style={{ flex: 1 }}>
+    <div style={{ width: canvasWidth, height: canvasHeight }}>
       <Stage
         width={canvasWidth}
         height={canvasHeight}

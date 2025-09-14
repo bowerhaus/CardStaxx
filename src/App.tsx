@@ -7,6 +7,7 @@ import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS, SearchFilters, SearchResult } from './types';
 import { CARD_WIDTH, CARD_HEIGHT } from './constants/typography';
+import { LAYOUT } from './constants/layout';
 import Konva from 'konva'; // Import Konva for Node type
 
 // Data migration utility for backward compatibility
@@ -56,8 +57,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['character', 'protagonist', 'hobbit'],
           backgroundColor: CARD_COLORS.LIGHT_BLUE,
-          width: 340,  // 170% of 200
-          height: 294  // 170% of 173
+          width: 442,  // 221% of 200 (170% * 1.3)
+          height: 382  // 221% of 173 (170% * 1.3)
         },
         {
           id: 'aragorn-card',
@@ -67,8 +68,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['character', 'king', 'ranger', 'leadership'],
           backgroundColor: CARD_COLORS.LIGHT_GREEN,
-          width: 340,  // 170% of 200
-          height: 294  // 170% of 173
+          width: 442,  // 221% of 200 (170% * 1.3)
+          height: 382  // 221% of 173 (170% * 1.3)
         },
         {
           id: 'gandalf-card',
@@ -78,8 +79,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['character', 'wizard', 'mentor', 'transformation'],
           backgroundColor: CARD_COLORS.LIGHT_YELLOW,
-          width: 340,  // 170% of 200
-          height: 294  // 170% of 173
+          width: 442,  // 221% of 200 (170% * 1.3)
+          height: 382  // 221% of 173 (170% * 1.3)
         },
         {
           id: 'gollum-card',
@@ -89,8 +90,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['character', 'anti-hero', 'corruption', 'redemption'],
           backgroundColor: CARD_COLORS.LIGHT_GRAY,
-          width: 340,  // 170% of 200
-          height: 294  // 170% of 173
+          width: 442,  // 221% of 200 (170% * 1.3)
+          height: 382  // 221% of 173 (170% * 1.3)
         }
       ]
     },
@@ -109,8 +110,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['theme', 'morality', 'symbolism'],
           backgroundColor: CARD_COLORS.LIGHT_PURPLE,
-          width: 380,  // 190% of 200
-          height: 329  // 190% of 173
+          width: 494,  // 247% of 200 (190% * 1.3)
+          height: 428  // 247% of 173 (190% * 1.3)
         },
         {
           id: 'power-corruption-card',
@@ -120,8 +121,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['theme', 'power', 'corruption', 'temptation'],
           backgroundColor: CARD_COLORS.LIGHT_RED,
-          width: 380,  // 190% of 200
-          height: 329  // 190% of 173
+          width: 494,  // 247% of 200 (190% * 1.3)
+          height: 428  // 247% of 173 (190% * 1.3)
         },
         {
           id: 'heroic-journey-card',
@@ -131,8 +132,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['theme', 'structure', 'monomyth', 'journey'],
           backgroundColor: CARD_COLORS.LIGHT_ORANGE,
-          width: 380,  // 190% of 200
-          height: 329  // 190% of 173
+          width: 494,  // 247% of 200 (190% * 1.3)
+          height: 428  // 247% of 173 (190% * 1.3)
         },
         {
           id: 'friendship-sacrifice-card',
@@ -142,8 +143,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['theme', 'friendship', 'loyalty', 'sacrifice'],
           backgroundColor: CARD_COLORS.LIGHT_PINK,
-          width: 380,  // 190% of 200
-          height: 329  // 190% of 173
+          width: 494,  // 247% of 200 (190% * 1.3)
+          height: 428  // 247% of 173 (190% * 1.3)
         }
       ]
     },
@@ -162,8 +163,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['visual', 'cinematography', 'technique'],
           backgroundColor: CARD_COLORS.LIGHT_CYAN,
-          width: 320,  // 160% of 200
-          height: 277  // 160% of 173
+          width: 416,  // 208% of 200 (160% * 1.3)
+          height: 360  // 208% of 173 (160% * 1.3)
         },
         {
           id: 'music-card',
@@ -173,8 +174,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['visual', 'music', 'score', 'emotion'],
           backgroundColor: CARD_COLORS.LIGHT_INDIGO,
-          width: 320,  // 160% of 200
-          height: 277  // 160% of 173
+          width: 416,  // 208% of 200 (160% * 1.3)
+          height: 360  // 208% of 173 (160% * 1.3)
         },
         {
           id: 'production-design-card',
@@ -184,8 +185,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['visual', 'design', 'architecture', 'culture'],
           backgroundColor: CARD_COLORS.LIGHT_TEAL,
-          width: 320,  // 160% of 200
-          height: 277  // 160% of 173
+          width: 416,  // 208% of 200 (160% * 1.3)
+          height: 360  // 208% of 173 (160% * 1.3)
         },
         {
           id: 'special-effects-card',
@@ -195,8 +196,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['visual', 'effects', 'technology', 'innovation'],
           backgroundColor: CARD_COLORS.LIGHT_LIME,
-          width: 320,  // 160% of 200
-          height: 277  // 160% of 173
+          width: 416,  // 208% of 200 (160% * 1.3)
+          height: 360  // 208% of 173 (160% * 1.3)
         }
       ]
     },
@@ -215,8 +216,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['plot', 'revelation', 'turning-point'],
           backgroundColor: CARD_COLORS.LIGHT_AMBER,
-          width: 400,  // 200% of 200
-          height: 346  // 200% of 173
+          width: 520,  // 260% of 200 (200% * 1.3)
+          height: 450  // 260% of 173 (200% * 1.3)
         },
         {
           id: 'fellowship-formation-card',
@@ -226,8 +227,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['plot', 'alliance', 'unity', 'commitment'],
           backgroundColor: CARD_COLORS.LIGHT_BROWN,
-          width: 400,  // 200% of 200
-          height: 346  // 200% of 173
+          width: 520,  // 260% of 200 (200% * 1.3)
+          height: 450  // 260% of 173 (200% * 1.3)
         },
         {
           id: 'helms-deep-card',
@@ -237,8 +238,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['plot', 'battle', 'strategy', 'turning-point'],
           backgroundColor: CARD_COLORS.LIGHT_DEEP_ORANGE,
-          width: 400,  // 200% of 200
-          height: 346  // 200% of 173
+          width: 520,  // 260% of 200 (200% * 1.3)
+          height: 450  // 260% of 173 (200% * 1.3)
         },
         {
           id: 'mount-doom-card',
@@ -248,8 +249,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['plot', 'climax', 'redemption', 'sacrifice'],
           backgroundColor: CARD_COLORS.LIGHT_BLUE_GREY,
-          width: 400,  // 200% of 200
-          height: 346  // 200% of 173
+          width: 520,  // 260% of 200 (200% * 1.3)
+          height: 450  // 260% of 173 (200% * 1.3)
         }
       ]
     },
@@ -268,8 +269,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'tolkien',
           tags: ['analysis', 'influences', 'historical', 'academic'],
           backgroundColor: CARD_COLORS.LIGHT_LAVENDER,
-          width: 300,  // 150% of 200
-          height: 260  // 150% of 173
+          width: 390,  // 195% of 200 (150% * 1.3)
+          height: 338  // 195% of 173 (150% * 1.3)
         },
         {
           id: 'mythological-elements-card',
@@ -279,8 +280,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['analysis', 'mythology', 'archetypes', 'universal'],
           backgroundColor: CARD_COLORS.LIGHT_MINT,
-          width: 300,  // 150% of 200
-          height: 260  // 150% of 173
+          width: 390,  // 195% of 200 (150% * 1.3)
+          height: 338  // 195% of 173 (150% * 1.3)
         },
         {
           id: 'symbolism-card',
@@ -290,8 +291,8 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
           key: 'lotr-trilogy',
           tags: ['analysis', 'symbolism', 'interpretation', 'meaning'],
           backgroundColor: CARD_COLORS.LIGHT_PEACH,
-          width: 300,  // 150% of 200
-          height: 260  // 150% of 173
+          width: 390,  // 195% of 200 (150% * 1.3)
+          height: 338  // 195% of 173 (150% * 1.3)
         }
       ]
     }
@@ -669,7 +670,7 @@ function App() {
 
     // Calculate bounding box of all visible cards
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    const SIDEBAR_WIDTH = 270;
+    const SIDEBAR_WIDTH = LAYOUT.SIDEBAR_WIDTH;
     const CANVAS_MARGIN = 50; // Margin around focused area
     
     filteredStacks.forEach(stack => {
@@ -952,7 +953,7 @@ function App() {
     const demoData = generateMovieDemoData();
     setStacks(demoData.stacks);
     setConnections(demoData.connections);
-    setCurrentFilePath(null);
+    setCurrentFilePath('Lord of the Rings Movie Analysis Demo.cardstaxx');
     setHasUnsavedChanges(true);
   };
 
@@ -1410,7 +1411,7 @@ function App() {
       isEditing: boolean;
     }> = [];
 
-    const SIDEBAR_WIDTH = 270; // Match the Canvas component sidebar offset
+    const SIDEBAR_WIDTH = LAYOUT.SIDEBAR_WIDTH; // Match the Canvas component sidebar offset
     const currentStacks = getFilteredStacks();
 
     currentStacks.forEach(stack => {
@@ -1465,7 +1466,7 @@ function App() {
   const availableKeys = getAllKeys();
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div style={{ display: 'flex', height: '100vh' }}>
       <Sidebar 
         onCreateCard={handleCreateCard}
         onSave={() => saveWorkspace(currentFilePath ?? undefined)}
