@@ -72,10 +72,13 @@ const EditableTextOverlay = ({
     padding: '2px',
     margin: '0',
     background: 'white',
+    backgroundColor: 'white', // Ensure background is white for all browsers
     boxSizing: 'border-box',
     outline: 'none',
     borderRadius: '3px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+    opacity: '1', // Ensure the input is not transparent
+    zIndex: 200, // Ensure it renders above MarkdownRenderer (zIndex: 100)
   };
 
   return isTextArea ? (
