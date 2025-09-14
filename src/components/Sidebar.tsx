@@ -86,57 +86,332 @@ const Sidebar = ({
   };
 
   return (
-    <div style={{ width: '250px', borderRight: '1px solid #ccc', padding: '10px', height: '100vh', backgroundColor: '#f7f7f7', overflowY: 'auto', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
-      <h2 style={{ fontFamily: 'inherit' }}>CardStaxx</h2>
-      <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', fontFamily: 'inherit' }}>
-        {getFileName()}{hasUnsavedChanges ? ' *' : ''}
+    <div style={{ 
+      width: '280px', 
+      borderRight: '1px solid #e0e0e0', 
+      padding: '20px', 
+      height: '100vh', 
+      backgroundColor: '#fafafa', 
+      overflowY: 'auto', 
+      fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.05)'
+    }}>
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{ 
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '8px'
+        }}>
+          <div style={{ 
+            width: '28px',
+            height: '28px',
+            backgroundColor: '#ff7b00',
+            borderRadius: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: '12px',
+            color: 'white',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            📚
+          </div>
+          <h2 style={{ 
+            fontFamily: 'inherit', 
+            margin: '0',
+            fontSize: '18px',
+            fontWeight: '600',
+            color: '#333'
+          }}>
+            Knowledge Cards
+          </h2>
+        </div>
+        <div style={{ 
+          fontSize: '13px', 
+          color: '#888', 
+          fontFamily: 'inherit',
+          marginLeft: '40px'
+        }}>
+          Personal knowledge database
+        </div>
+        <div style={{ 
+          fontSize: '12px', 
+          color: '#666', 
+          marginTop: '8px', 
+          fontFamily: 'inherit',
+          marginLeft: '40px'
+        }}>
+          {getFileName()}{hasUnsavedChanges ? ' *' : ''}
+        </div>
       </div>
       
-      <div style={{ marginBottom: '10px' }}>
-        <button onClick={onNew} style={{ marginRight: '5px' }}>New</button>
-        <button onClick={onLoad} style={{ marginRight: '5px' }}>Load</button>
-        <button onClick={onSave} style={{ marginRight: '5px' }} disabled={!hasUnsavedChanges}>
-          Save
+      <div style={{ 
+        display: 'flex', 
+        gap: '8px', 
+        flexWrap: 'wrap',
+        marginBottom: '20px'
+      }}>
+        <button 
+          onClick={onNew} 
+          style={{ 
+            flex: '1',
+            padding: '6px 12px',
+            fontSize: '12px',
+            backgroundColor: '#fff',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#f5f5f5';
+            target.style.borderColor = '#ccc';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#fff';
+            target.style.borderColor = '#ddd';
+          }}
+        >
+          🔄 New
         </button>
-        <button onClick={onSaveAs}>Save As</button>
+        <button 
+          onClick={onLoad} 
+          style={{ 
+            flex: '1',
+            padding: '6px 12px',
+            fontSize: '12px',
+            backgroundColor: '#fff',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#f5f5f5';
+            target.style.borderColor = '#ccc';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#fff';
+            target.style.borderColor = '#ddd';
+          }}
+        >
+          📁 Load
+        </button>
+        <button 
+          onClick={onSave} 
+          disabled={!hasUnsavedChanges}
+          style={{ 
+            flex: '1',
+            padding: '6px 12px',
+            fontSize: '12px',
+            backgroundColor: hasUnsavedChanges ? '#fff' : '#f8f8f8',
+            color: hasUnsavedChanges ? '#333' : '#999',
+            border: `1px solid ${hasUnsavedChanges ? '#ddd' : '#e8e8e8'}`,
+            borderRadius: '6px',
+            cursor: hasUnsavedChanges ? 'pointer' : 'not-allowed',
+            fontWeight: '500',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            if (hasUnsavedChanges) {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#f5f5f5';
+              target.style.borderColor = '#ccc';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (hasUnsavedChanges) {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#fff';
+              target.style.borderColor = '#ddd';
+            }
+          }}
+        >
+          💾 Save
+        </button>
+        <button 
+          onClick={onSaveAs}
+          style={{ 
+            flex: '1',
+            padding: '6px 12px',
+            fontSize: '12px',
+            backgroundColor: '#fff',
+            color: '#333',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '500',
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#f5f5f5';
+            target.style.borderColor = '#ccc';
+          }}
+          onMouseLeave={(e) => {
+            const target = e.target as HTMLElement;
+            target.style.backgroundColor = '#fff';
+            target.style.borderColor = '#ddd';
+          }}
+        >
+          📋 Save As
+        </button>
       </div>
       
-      <hr />
-      <button onClick={handleNewCard} style={{ width: '100%', marginBottom: '10px' }}>
-        New Card
+      <button 
+        onClick={handleNewCard} 
+        style={{ 
+          width: '100%', 
+          padding: '12px 16px',
+          marginBottom: '24px',
+          fontSize: '14px',
+          fontWeight: '600',
+          backgroundColor: '#ff7b00',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 2px 4px rgba(255,123,0,0.2)'
+        }}
+        onMouseEnter={(e) => {
+          const target = e.target as HTMLElement;
+          target.style.backgroundColor = '#e66a00';
+          target.style.transform = 'translateY(-1px)';
+          target.style.boxShadow = '0 4px 8px rgba(255,123,0,0.3)';
+        }}
+        onMouseLeave={(e) => {
+          const target = e.target as HTMLElement;
+          target.style.backgroundColor = '#ff7b00';
+          target.style.transform = 'translateY(0)';
+          target.style.boxShadow = '0 2px 4px rgba(255,123,0,0.2)';
+        }}
+      >
+        ➕ Create New Card
       </button>
-      <hr />
       
       {/* Search Section */}
-      <div style={{ marginBottom: '10px' }}>
-        <input 
-          type="search" 
-          placeholder="Search cards..." 
-          style={{ width: '100%', marginBottom: '5px' }}
-          value={searchFilters.searchText}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ 
+          position: 'relative',
+          marginBottom: '12px'
+        }}>
+          <div style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontSize: '16px',
+            color: '#888',
+            pointerEvents: 'none'
+          }}>
+            🔍
+          </div>
+          <input 
+            type="search" 
+            placeholder="Search cards..." 
+            style={{ 
+              width: '100%',
+              padding: '10px 12px 10px 36px',
+              fontSize: '14px',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              backgroundColor: '#fff',
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              boxSizing: 'border-box'
+            }}
+            value={searchFilters.searchText}
+            onChange={(e) => onSearchChange(e.target.value)}
+            onFocus={(e) => {
+              const target = e.target as HTMLElement;
+              target.style.borderColor = '#ff7b00';
+              target.style.boxShadow = '0 0 0 3px rgba(255,123,0,0.1)';
+            }}
+            onBlur={(e) => {
+              const target = e.target as HTMLElement;
+              target.style.borderColor = '#ddd';
+              target.style.boxShadow = 'none';
+            }}
+          />
+        </div>
         {(searchFilters.searchText || searchFilters.selectedTags.length > 0 || searchFilters.focusedKey) && (
           <button 
             onClick={clearAllFilters}
-            style={{ fontSize: '11px', padding: '2px 6px' }}
+            style={{ 
+              fontSize: '12px', 
+              padding: '6px 12px',
+              backgroundColor: '#f8f9fa',
+              color: '#666',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#e9ecef';
+              target.style.borderColor = '#ccc';
+            }}
+            onMouseLeave={(e) => {
+              const target = e.target as HTMLElement;
+              target.style.backgroundColor = '#f8f9fa';
+              target.style.borderColor = '#ddd';
+            }}
           >
-            Clear All Filters
+            🗑️ Clear All Filters
           </button>
         )}
       </div>
 
       {/* Statistics */}
-      <div style={{ fontSize: '12px', color: '#666', marginBottom: '10px', fontFamily: 'inherit' }}>
-        Showing {filteredCards} of {totalCards} cards
+      <div style={{ 
+        fontSize: '13px', 
+        color: '#777', 
+        marginBottom: '20px', 
+        fontFamily: 'inherit',
+        padding: '12px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        border: '1px solid #e9ecef'
+      }}>
+        <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+          📊 Showing {filteredCards} of {totalCards} cards
+        </div>
         {searchResults.length > 0 && (
-          <div>{searchResults.length} search matches</div>
+          <div style={{ fontSize: '12px', color: '#999' }}>
+            🎯 {searchResults.length} search matches
+          </div>
         )}
       </div>
 
       {/* Key Filter Section */}
-      <div style={{ marginBottom: '10px' }}>
-        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Key Cloud</h4>
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ 
+          margin: '0 0 12px 0', 
+          fontSize: '15px', 
+          fontFamily: 'inherit',
+          fontWeight: '600',
+          color: '#333',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          🔑 Filter by Key
+        </h4>
         <div style={{ 
           maxHeight: '120px', 
           overflowY: 'auto', 
@@ -196,8 +471,19 @@ const Sidebar = ({
       </div>
 
       {/* Tag Filter Section */}
-      <div style={{ marginBottom: '10px' }}>
-        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Tag Cloud</h4>
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ 
+          margin: '0 0 12px 0', 
+          fontSize: '15px', 
+          fontFamily: 'inherit',
+          fontWeight: '600',
+          color: '#333',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          🏷️ Filter by Tags
+        </h4>
         <div style={{ 
           maxHeight: '150px', 
           overflowY: 'auto', 
@@ -258,8 +544,19 @@ const Sidebar = ({
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <div style={{ marginBottom: '10px' }}>
-          <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Search Results</h4>
+        <div style={{ marginBottom: '20px' }}>
+          <h4 style={{ 
+            margin: '0 0 12px 0', 
+            fontSize: '15px', 
+            fontFamily: 'inherit',
+            fontWeight: '600',
+            color: '#333',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            🎯 Search Results
+          </h4>
           <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff' }}>
             {searchResults.map((result, index) => (
               <div key={`${result.cardId}-${result.matchType}-${index}`} style={{ marginBottom: '5px', padding: '3px', border: '1px solid #eee', borderRadius: '3px' }}>
@@ -276,8 +573,19 @@ const Sidebar = ({
       )}
 
       {/* Timeline Toggle */}
-      <div style={{ marginTop: '20px' }}>
-        <h4 style={{ margin: '0 0 5px 0', fontSize: '14px', fontFamily: 'inherit' }}>Timeline View</h4>
+      <div style={{ marginTop: '24px', marginBottom: '20px' }}>
+        <h4 style={{ 
+          margin: '0 0 12px 0', 
+          fontSize: '15px', 
+          fontFamily: 'inherit',
+          fontWeight: '600',
+          color: '#333',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          📅 Timeline View
+        </h4>
         <button
           onClick={onTimelineToggle}
           style={{
@@ -310,12 +618,23 @@ const Sidebar = ({
             }
           }}
         >
-          📅 {isTimelineVisible ? 'Hide Timeline' : 'Show Timeline'}
+          {isTimelineVisible ? '👁️ Hide Timeline' : '📅 Show Timeline'}
         </button>
       </div>
       {/* Canvas Zoom Controls */}
-      <div style={{ marginTop: '20px' }}>
-        <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', fontFamily: 'inherit' }}>Canvas Zoom</h4>
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ 
+          margin: '0 0 12px 0', 
+          fontSize: '15px', 
+          fontFamily: 'inherit',
+          fontWeight: '600',
+          color: '#333',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px'
+        }}>
+          🔍 Canvas Zoom
+        </h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '12px', color: '#666', fontFamily: 'inherit' }}>Zoom: {Math.round(canvasZoom * 100)}%</span>
