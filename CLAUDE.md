@@ -32,11 +32,30 @@ CardStaxx is an Electron-based desktop application for visual knowledge manageme
 - **Color Palette**: Predefined card background colors with utility functions
 - **Data Migration**: Backward compatibility utilities for existing files
 
+#### Modular Architecture (Refactored September 2025)
+- **App.tsx**: Simplified orchestrator component (249 lines, reduced from 1886 lines)
+  - Composes custom hooks for state management
+  - Renders main layout and passes props to child components
+  - No longer contains business logic directly
+
+#### Custom Hooks (`src/hooks/`)
+- **useWorkspace**: File operations, save/load/new workspace functionality
+- **useEditingState**: Centralized editing state for cards, stacks, and connections
+- **useFocusMode**: Focus mode toggle, zoom controls, and view transformations
+- **useSearch**: Search functionality, filtering, and result management
+- **useCardOperations**: Card CRUD operations, color picker, delete confirmation
+- **useStackOperations**: Stack management, drag-and-drop, wheel navigation
+- **useConnectionOperations**: Connection creation, editing, deletion
+- **useTimeline**: Timeline visibility and card interaction handlers
+
+#### Business Logic Services (`src/services/`)
+- **workspaceService**: Data migration utilities for backward compatibility
+- **demoDataService**: Lord of the Rings movie analysis demo data generation
+
+#### Utility Functions (`src/utils/`)
+- **positionCalculations**: Card screen positioning and overlay calculations
+
 #### Component Architecture
-- **App.tsx**: Main application state and event handlers
-  - Manages stacks, connections, and editing state
-  - Handles drag-and-drop operations for stacks and connections
-  - Manages card editing overlay positioning
 - **Canvas.tsx**: Konva-based rendering layer for stacks and connections
 - **Stack.tsx**: Individual stack rendering with card cycling
 - **Notecard.tsx**: Individual card display within stacks
@@ -56,13 +75,30 @@ CardStaxx is an Electron-based desktop application for visual knowledge manageme
 - **Timeline System**: Viewport-fixed timeline at bottom showing dated cards with connection lines to stacks
 - **Visual Enhancements**: Enhanced stack borders, scaling effects, and field positioning
 
-#### File Organization
+#### File Organization (Updated September 2025)
 ```
 src/
 ├── index.tsx           # React app entry point
-├── App.tsx             # Main app component and state
+├── App.tsx             # Simplified orchestrator component (249 lines)
 ├── types.ts            # TypeScript interfaces
-└── components/         # React components
+├── hooks/              # Custom React hooks for state management
+│   ├── useWorkspace.ts
+│   ├── useEditingState.ts
+│   ├── useFocusMode.ts
+│   ├── useSearch.ts
+│   ├── useCardOperations.ts
+│   ├── useStackOperations.ts
+│   ├── useConnectionOperations.ts
+│   └── useTimeline.ts
+├── services/           # Business logic services
+│   ├── workspaceService.ts
+│   └── demoDataService.ts
+├── utils/              # Utility functions
+│   └── positionCalculations.ts
+├── constants/          # Application constants
+│   ├── typography.ts
+│   └── layout.ts
+└── components/         # React UI components
     ├── Canvas.tsx      # Konva canvas layer
     ├── Stack.tsx       # Stack rendering
     ├── Notecard.tsx    # Individual card
