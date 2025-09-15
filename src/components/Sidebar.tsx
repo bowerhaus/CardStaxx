@@ -95,18 +95,18 @@ const Sidebar = ({
     <div style={{ 
       width: `${LAYOUT.SIDEBAR_WIDTH}px`, 
       borderRight: '1px solid #e0e0e0', 
-      padding: '20px', 
-      height: '100vh', 
-      backgroundColor: '#fafafa', 
-      overflowY: 'auto', 
+      padding: '16px',
+      height: '100vh',
+      backgroundColor: '#fafafa',
+      overflowY: 'auto',
       fontFamily: FONT_FAMILY,
       boxShadow: '2px 0 8px rgba(0,0,0,0.05)'
     }}>
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <div style={{ 
           display: 'flex',
           alignItems: 'center',
-          marginBottom: '8px'
+          marginBottom: '6px'
         }}>
           <div style={{ 
             width: '28px',
@@ -144,7 +144,7 @@ const Sidebar = ({
         <div style={{ 
           fontSize: '12px', 
           color: '#666', 
-          marginTop: '8px', 
+          marginTop: '6px', 
           fontFamily: 'inherit',
           marginLeft: '40px'
         }}>
@@ -156,8 +156,8 @@ const Sidebar = ({
         onClick={onLoadDemo} 
         style={{ 
           width: '100%', 
-          padding: '10px 16px',
-          marginBottom: '16px',
+          padding: '8px 14px',
+          marginBottom: '12px',
           fontSize: '13px',
           fontWeight: '500',
           backgroundColor: '#6c5ce7',
@@ -188,11 +188,11 @@ const Sidebar = ({
         📽️ Load Movie Demo
       </button>
       
-      <div style={{ 
-        display: 'flex', 
-        gap: '8px', 
+      <div style={{
+        display: 'flex',
+        gap: '8px',
         flexWrap: 'wrap',
-        marginBottom: '20px'
+        marginBottom: '14px'
       }}>
         <button 
           onClick={onNew} 
@@ -314,15 +314,15 @@ const Sidebar = ({
         width: '100%',
         height: '1px',
         backgroundColor: '#e0e0e0',
-        marginBottom: '20px'
+        marginBottom: '14px'
       }}></div>
       
       <button 
         onClick={handleNewCard} 
         style={{ 
           width: '100%', 
-          padding: '12px 16px',
-          marginBottom: '24px',
+          padding: '10px 14px',
+          marginBottom: '16px',
           fontSize: '14px',
           fontWeight: '600',
           backgroundColor: '#ff7b00',
@@ -354,10 +354,10 @@ const Sidebar = ({
       </button>
       
       {/* Search Section */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ 
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{
           position: 'relative',
-          marginBottom: '12px'
+          marginBottom: '10px'
         }}>
           <div style={{
             position: 'absolute',
@@ -428,17 +428,17 @@ const Sidebar = ({
       </div>
 
       {/* Statistics */}
-      <div style={{ 
-        fontSize: '13px', 
-        color: '#777', 
-        marginBottom: '20px', 
+      <div style={{
+        fontSize: '13px',
+        color: '#777',
+        marginBottom: '14px', 
         fontFamily: 'inherit',
-        padding: '12px',
+        padding: '10px',
         backgroundColor: '#f8f9fa',
         borderRadius: '8px',
         border: '1px solid #e9ecef'
       }}>
-        <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+        <div style={{ fontWeight: '500', marginBottom: '2px' }}>
           📊 Showing {filteredCards} of {totalCards} cards
         </div>
         {searchResults.length > 0 && (
@@ -449,9 +449,9 @@ const Sidebar = ({
       </div>
 
       {/* Key Filter Section */}
-      <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ 
-          margin: '0 0 12px 0', 
+      <div style={{ marginBottom: '14px' }}>
+        <h4 style={{
+          margin: '0 0 8px 0', 
           fontSize: '15px', 
           fontFamily: 'inherit',
           fontWeight: '600',
@@ -462,11 +462,11 @@ const Sidebar = ({
         }}>
           🔑 Filter by Key
         </h4>
-        <div style={{ 
-          maxHeight: '120px', 
-          overflowY: 'auto', 
-          border: '1px solid #ddd', 
-          padding: '8px', 
+        <div style={{
+          maxHeight: '100px',
+          overflowY: 'auto',
+          border: '1px solid #ddd',
+          padding: '6px', 
           backgroundColor: '#fff',
           display: 'flex',
           flexWrap: 'wrap',
@@ -521,9 +521,9 @@ const Sidebar = ({
       </div>
 
       {/* Tag Filter Section */}
-      <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ 
-          margin: '0 0 12px 0', 
+      <div style={{ marginBottom: '14px' }}>
+        <h4 style={{
+          margin: '0 0 8px 0', 
           fontSize: '15px', 
           fontFamily: 'inherit',
           fontWeight: '600',
@@ -534,11 +534,11 @@ const Sidebar = ({
         }}>
           🏷️ Filter by Tags
         </h4>
-        <div style={{ 
-          maxHeight: '150px', 
-          overflowY: 'auto', 
-          border: '1px solid #ddd', 
-          padding: '8px', 
+        <div style={{
+          maxHeight: '120px',
+          overflowY: 'auto',
+          border: '1px solid #ddd',
+          padding: '6px', 
           backgroundColor: '#fff',
           display: 'flex',
           flexWrap: 'wrap',
@@ -594,9 +594,9 @@ const Sidebar = ({
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <h4 style={{ 
-            margin: '0 0 12px 0', 
+        <div style={{ marginBottom: '14px' }}>
+          <h4 style={{
+            margin: '0 0 8px 0', 
             fontSize: '15px', 
             fontFamily: 'inherit',
             fontWeight: '600',
@@ -607,9 +607,9 @@ const Sidebar = ({
           }}>
             🎯 Search Results
           </h4>
-          <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', padding: '5px', backgroundColor: '#fff' }}>
+          <div style={{ maxHeight: '120px', overflowY: 'auto', border: '1px solid #ddd', padding: '4px', backgroundColor: '#fff' }}>
             {searchResults.map((result, index) => (
-              <div key={`${result.cardId}-${result.matchType}-${index}`} style={{ marginBottom: '5px', padding: '3px', border: '1px solid #eee', borderRadius: '3px' }}>
+              <div key={`${result.cardId}-${result.matchType}-${index}`} style={{ marginBottom: '3px', padding: '2px', border: '1px solid #eee', borderRadius: '3px' }}>
                 <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#666', fontFamily: 'inherit' }}>
                   {result.matchType.toUpperCase()} MATCH
                 </div>
@@ -623,9 +623,9 @@ const Sidebar = ({
       )}
 
       {/* Timeline Toggle */}
-      <div style={{ marginTop: '24px', marginBottom: '20px' }}>
-        <h4 style={{ 
-          margin: '0 0 12px 0', 
+      <div style={{ marginTop: '16px', marginBottom: '14px' }}>
+        <h4 style={{
+          margin: '0 0 8px 0', 
           fontSize: '15px', 
           fontFamily: 'inherit',
           fontWeight: '600',
@@ -640,7 +640,7 @@ const Sidebar = ({
           onClick={onTimelineToggle}
           style={{
             width: '100%',
-            padding: '8px 12px',
+            padding: '6px 10px',
             backgroundColor: isTimelineVisible ? '#007bff' : '#f8f9fa',
             color: isTimelineVisible ? 'white' : '#333',
             border: `1px solid ${isTimelineVisible ? '#007bff' : '#ccc'}`,
@@ -672,9 +672,9 @@ const Sidebar = ({
         </button>
       </div>
       {/* Canvas Zoom Controls */}
-      <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ 
-          margin: '0 0 12px 0', 
+      <div style={{ marginBottom: '14px' }}>
+        <h4 style={{
+          margin: '0 0 8px 0', 
           fontSize: '15px', 
           fontFamily: 'inherit',
           fontWeight: '600',
@@ -685,17 +685,17 @@ const Sidebar = ({
         }}>
           🔍 Canvas Zoom
         </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '12px', color: '#666', fontFamily: 'inherit' }}>Zoom: {Math.round(canvasZoom * 100)}%</span>
           </div>
-          <div style={{ display: 'flex', gap: '5px' }}>
+          <div style={{ display: 'flex', gap: '4px' }}>
             <button
               onClick={onZoomOut}
               disabled={canvasZoom <= 0.5 || isFocusModeEnabled}
               style={{
                 flex: 1,
-                padding: '6px 8px',
+                padding: '4px 6px',
                 fontSize: '12px',
                 backgroundColor: (canvasZoom <= 0.5 || isFocusModeEnabled) ? '#f0f0f0' : '#f8f9fa',
                 color: (canvasZoom <= 0.5 || isFocusModeEnabled) ? '#999' : '#333',
@@ -711,7 +711,7 @@ const Sidebar = ({
               disabled={canvasZoom >= 2 || isFocusModeEnabled}
               style={{
                 flex: 1,
-                padding: '6px 8px',
+                padding: '4px 6px',
                 fontSize: '12px',
                 backgroundColor: (canvasZoom >= 2 || isFocusModeEnabled) ? '#f0f0f0' : '#f8f9fa',
                 color: (canvasZoom >= 2 || isFocusModeEnabled) ? '#999' : '#333',
