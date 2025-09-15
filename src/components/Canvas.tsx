@@ -51,7 +51,7 @@ interface CanvasProps {
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
   onCardBreakOut: (cardId: string) => void;
-  onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node) => void;
+  onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node, currentLabel?: string) => void;
   onConnectionDelete: (connectionId: string) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
@@ -61,6 +61,8 @@ interface CanvasProps {
   canvasZoom?: number;
   canvasTranslate?: {x: number; y: number};
   onCanvasTranslationChange?: (newTranslate: {x: number; y: number}) => void;
+  sidebarWidth?: number;
+  onCardHover?: (cardId: string | null) => void;
 }
 
 const Canvas = React.memo(({
@@ -90,12 +92,14 @@ const Canvas = React.memo(({
   highlightedCardIds,
   canvasZoom = 1,
   canvasTranslate = {x: 0, y: 0},
-  onCanvasTranslationChange
+  onCanvasTranslationChange,
+  sidebarWidth = LAYOUT.SIDEBAR_WIDTH,
+  onCardHover
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   
   // Canvas dimensions with resize listener
-  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
+  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - sidebarWidth);
   const [canvasHeight, setCanvasHeight] = useState(window.innerHeight);
 
   // Canvas drag state for panning
@@ -104,13 +108,18 @@ const Canvas = React.memo(({
 
   useEffect(() => {
     const handleResize = () => {
-      setCanvasWidth(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
+      setCanvasWidth(window.innerWidth - sidebarWidth);
       setCanvasHeight(window.innerHeight);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [sidebarWidth]);
+
+  // Update canvas width when sidebar width changes
+  useEffect(() => {
+    setCanvasWidth(window.innerWidth - sidebarWidth);
+  }, [sidebarWidth]);
 
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
@@ -235,6 +244,7 @@ const Canvas = React.memo(({
               onColorPickerOpen={onColorPickerOpen}
               onCardDelete={onCardDelete}
               onCardBreakOut={onCardBreakOut}
+              onCardHover={onCardHover}
               editingCardId={editingCardId}
               editingField={editingField}
               editingStackId={editingStackId}
@@ -288,8 +298,8 @@ const Canvas = React.memo(({
                     stroke="grey"
                     strokeWidth={1}
                     opacity={0.9}
-                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
-                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
                   />
                   
                   {/* Label text */}
@@ -303,8 +313,8 @@ const Canvas = React.memo(({
                     verticalAlign="middle"
                     offsetX={connection.label ? (connection.label.length * 2.5) : 3}
                     offsetY={5}
-                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
-                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
                   />
                   
                   {/* Delete button (small X) - shown when editing */}

@@ -132,13 +132,30 @@ Both commands output to the `out/` directory.
 ```
 CardStaxx/
 ├── src/
-│   ├── components/          # React components
+│   ├── components/          # React UI components
 │   │   ├── Canvas.tsx       # Main canvas with Konva
 │   │   ├── Sidebar.tsx      # Control panel
 │   │   ├── Stack.tsx        # Stack rendering
 │   │   ├── Notecard.tsx     # Individual card display
 │   │   └── ...              # Other UI components
-│   ├── App.tsx              # Main application component
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useWorkspace.ts  # File operations and workspace management
+│   │   ├── useEditingState.ts # Centralized editing state management
+│   │   ├── useFocusMode.ts  # Focus mode and view transformations
+│   │   ├── useSearch.ts     # Search and filtering logic
+│   │   ├── useCardOperations.ts # Card CRUD and operations
+│   │   ├── useStackOperations.ts # Stack management
+│   │   ├── useConnectionOperations.ts # Connection handling
+│   │   └── useTimeline.ts   # Timeline functionality
+│   ├── services/            # Business logic services
+│   │   ├── workspaceService.ts # File I/O and data migration
+│   │   └── demoDataService.ts # Demo data generation
+│   ├── utils/               # Utility functions
+│   │   └── positionCalculations.ts # Position and overlay calculations
+│   ├── constants/           # Application constants
+│   │   ├── typography.ts    # Font and sizing constants
+│   │   └── layout.ts        # Layout dimensions
+│   ├── App.tsx              # Main application orchestrator (249 lines)
 │   ├── types.ts             # TypeScript type definitions
 │   └── index.tsx            # React entry point
 ├── electron/
@@ -147,6 +164,14 @@ CardStaxx/
 ├── package.json             # Dependencies and scripts
 └── README.md               # This file
 ```
+
+### 🏗️ Architecture Highlights
+
+- **Modular Design**: Logic separated into focused hooks and services
+- **Clean Separation**: UI components, business logic, and utilities in separate directories
+- **Reusable Hooks**: Custom hooks can be easily tested and reused
+- **Single Responsibility**: Each module handles one specific concern
+- **Type Safety**: Comprehensive TypeScript coverage throughout
 
 ## 🎯 Usage Tips
 
