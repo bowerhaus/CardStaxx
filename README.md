@@ -35,15 +35,17 @@ CardStaxx is a desktop visual knowledge management application designed to help 
 - **Search Statistics**: See filtered vs. total card counts
 
 ### ⏰ **Dynamic Timeline**
+- **Viewport-Fixed Position**: Timeline bar stays at the bottom of the screen, independent of canvas panning/zooming
 - **Date-based Visualization**: Horizontal timeline showing filtered cards by date
 - **Interactive Icons**: Click timeline icons to highlight and navigate to cards
 - **Group Indicators**: Multiple cards on same date shown as grouped icons
 - **Week Markers**: Subtle Monday indicators for temporal orientation
-- **Visual Connections**: Lines connect timeline icons to their canvas cards
+- **Visual Connections**: Dashed lines connect timeline icons to their canvas cards on hover
 - **Hover Tooltips**: Preview card titles and highlight connections
 
 ### 🎛️ **Canvas Controls**
 - **Infinite Workspace**: Unlimited canvas space for spatial organization
+- **Canvas Panning**: Drag empty areas with hand cursor to pan the canvas around
 - **Zoom Controls**: 50%-200% zoom range with sidebar controls
 - **Focus Mode**: Toggle focus mode 🎯 to automatically frame visible cards, with disabled zoom controls and preserved view settings
 - **Responsive Layout**: Canvas automatically resizes with window changes

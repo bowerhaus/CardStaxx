@@ -331,4 +331,37 @@ const [focusViewSettings, setFocusViewSettings] = useState<ViewSettings>({
 
 ---
 
-*Last Updated: September 14, 2025 - Editable Stack Titles Feature Completed*
+## Recent Update: Canvas Panning & Timeline Improvements (September 15, 2025)
+
+### Canvas Panning Implementation:
+- **Hand Cursor Interaction**: Added grab/grabbing cursor states when dragging empty canvas areas
+- **Mouse Event Handling**: Implemented canvas panning via drag operations on empty space
+- **State Management**: Added `isDraggingCanvas` state and mouse position tracking for smooth panning
+- **Integration**: Canvas translation now properly integrated with existing zoom and focus mode systems
+
+### Timeline Enhancement - Viewport-Fixed Positioning:
+- **Independent Positioning**: Timeline now uses fixed viewport positioning, completely independent of canvas zoom/pan/translation
+- **Coordinate Transformation**: Implemented proper coordinate transformation from canvas space to viewport space for connection lines
+- **Connection Line Fixes**: Fixed double-offset issue where sidebar width was being added twice to connection coordinates
+- **Y-Position Accuracy**: Timeline icon Y coordinates now correctly calculated relative to viewport bottom position
+- **Visual Improvements**: Enhanced connection line weight (2px → 3px) and dash pattern (5,5 → 8,4) for better visibility
+- **Font Consistency**: Applied consistent `FONT_FAMILY` typography across all timeline text elements
+
+### Technical Implementation Details:
+- **App.tsx**: Added `handleCanvasTranslationChange` callback for canvas translation state management
+- **Canvas.tsx**: 
+  - Added canvas drag state management (`isDraggingCanvas`, `lastCanvasMousePos`)
+  - Implemented mouse handlers for panning (`handleStageMouseDown`, `handleStageMouseUp`, etc.)
+  - Added grab/grabbing cursor management based on drag state
+- **Timeline.tsx**: 
+  - Converted from canvas-relative to viewport-fixed positioning (`position: 'fixed'`)
+  - Fixed coordinate transformation function to avoid double sidebar offset
+  - Updated connection line Y calculation to use viewport coordinates: `viewportHeight - TIMELINE_MARGIN - TIMELINE_HEIGHT / 2`
+  - Enhanced visual styling with increased line weight and improved typography
+
+### Impact: 
+These improvements significantly enhance user experience by providing intuitive canvas navigation and ensuring the timeline remains accessible and properly connected regardless of canvas transformations. The timeline now truly functions as a persistent navigation aid that's always visible at the bottom of the screen.
+
+---
+
+*Last Updated: September 15, 2025 - Canvas Panning & Timeline Viewport-Fixed Positioning Completed*

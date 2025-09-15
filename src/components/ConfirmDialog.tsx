@@ -8,8 +8,8 @@ interface ConfirmDialogProps {
   cancelText?: string;
   onConfirm: () => void;
   onCancel: () => void;
-  x: number;
-  y: number;
+  x?: number;
+  y?: number;
 }
 
 const ConfirmDialog = ({
@@ -23,15 +23,16 @@ const ConfirmDialog = ({
   y,
 }: ConfirmDialogProps) => {
   const dialogStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: `${y}px`,
-    left: `${x}px`,
+    position: 'fixed',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
     backgroundColor: 'white',
     border: '2px solid #ccc',
     borderRadius: '8px',
     padding: '16px',
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-    zIndex: 10000, // High z-index to appear above everything
+    zIndex: 10000,
     minWidth: '200px',
     maxWidth: '300px',
     fontFamily: FONT_FAMILY,

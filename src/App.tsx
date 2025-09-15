@@ -6,6 +6,7 @@ import ColorPicker from './components/ColorPicker';
 import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
 import DebugButton from './components/DebugButton';
+import Timeline from './components/Timeline';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS, SearchFilters, SearchResult } from './types';
 import { CARD_WIDTH, CARD_HEIGHT } from './constants/typography';
 import { LAYOUT } from './constants/layout';
@@ -264,7 +265,7 @@ const generateMovieDemoData = (): { stacks: StackData[], connections: Connection
     {
       id: 'literary-stack',
       x: 800,
-      y: 600,
+      y: 750,
       title: 'Literary Analysis',
       cards: [
         {
@@ -374,7 +375,6 @@ function App() {
 
   // State for delete confirmation dialog
   const [deleteConfirmCardId, setDeleteConfirmCardId] = useState<string | null>(null);
-  const [deleteConfirmPosition, setDeleteConfirmPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // State for search and filtering
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({
@@ -387,6 +387,9 @@ function App() {
 
   // State for timeline
   const [isTimelineVisible, setIsTimelineVisible] = useState<boolean>(false);
+
+  // State to track when demo is loaded and focus mode should be enabled
+  const [shouldEnableFocusOnDemoLoad, setShouldEnableFocusOnDemoLoad] = useState<boolean>(false);
 
   // Define ViewSettings interface for dual zoom/translation settings
   interface ViewSettings {
@@ -484,6 +487,51 @@ function App() {
     }
     setHasUnsavedChanges(false); // Focus mode changes don't mark as unsaved
   };
+
+  const handleCanvasTranslationChange = (newTranslate: {x: number; y: number}) => {
+    setCanvasTranslate(newTranslate);
+    
+    // Update the appropriate view settings based on current mode
+    if (isFocusModeEnabled) {
+      setFocusViewSettings(prev => ({
+        ...prev,
+        x: newTranslate.x,
+        y: newTranslate.y
+      }));
+    } else {
+      setNormalViewSettings(prev => ({
+        ...prev,
+        x: newTranslate.x,
+        y: newTranslate.y
+      }));
+    }
+    setHasUnsavedChanges(false); // Canvas panning doesn't mark as unsaved
+  };
+
+  // Viewport resize handler
+  useEffect(() => {
+    const handleViewportResize = () => {
+      // If focus mode is enabled, recalculate the focus transform
+      if (isFocusModeEnabled) {
+        const { zoom, translate } = calculateFocusTransform();
+        setCanvasZoom(zoom);
+        setCanvasTranslate(translate);
+        
+        // Update focus view settings with new calculated values
+        setFocusViewSettings({
+          scale: zoom,
+          x: translate.x,
+          y: translate.y
+        });
+      }
+      
+      // Timeline will automatically adjust due to its use of window.innerWidth/innerHeight
+      // No additional action needed for timeline as it recalculates on every render
+    };
+
+    window.addEventListener('resize', handleViewportResize);
+    return () => window.removeEventListener('resize', handleViewportResize);
+  }, [isFocusModeEnabled]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -813,7 +861,39 @@ function App() {
         y: translate.y
       });
     }
-  }, [searchFilters, stacks, isFocusModeEnabled, calculateFocusTransform]);
+  }, [searchFilters, stacks, isFocusModeEnabled]);
+
+  // Handle enabling focus mode after demo is loaded
+  useEffect(() => {
+    if (shouldEnableFocusOnDemoLoad && stacks.length > 0) {
+      console.log('Demo loaded, enabling focus mode');
+      
+      // Save current normal view settings before switching to focus mode
+      setNormalViewSettings({
+        scale: canvasZoom,
+        x: canvasTranslate.x,
+        y: canvasTranslate.y
+      });
+      
+      // Calculate and apply focus transform
+      const { zoom, translate } = calculateFocusTransform();
+      setCanvasZoom(zoom);
+      setCanvasTranslate(translate);
+      
+      // Save the focus view settings
+      setFocusViewSettings({
+        scale: zoom,
+        x: translate.x,
+        y: translate.y
+      });
+      
+      setIsFocusModeEnabled(true);
+      setHasUnsavedChanges(false); // Focus mode changes don't mark as unsaved
+      
+      // Reset the flag
+      setShouldEnableFocusOnDemoLoad(false);
+    }
+  }, [shouldEnableFocusOnDemoLoad, stacks, canvasZoom, canvasTranslate]);
 
   const handleSearchChange = (searchText: string) => {
     setSearchFilters(prev => ({ ...prev, searchText }));
@@ -1019,6 +1099,10 @@ function App() {
     setConnections(demoData.connections);
     setCurrentFilePath('Lord of the Rings Movie Analysis Demo.cardstaxx');
     setHasUnsavedChanges(true);
+    
+    // Mark that we need to enable focus mode after demo loads
+    // This will trigger the useEffect below to handle the focus mode activation
+    setShouldEnableFocusOnDemoLoad(true);
   };
 
   const handleStackDragMove = (id: string, x: number, y: number) => {
@@ -1339,9 +1423,8 @@ function App() {
     setColorPickerCardId(null);
   };
 
-  const handleCardDeleteRequest = (cardId: string, x: number, y: number) => {
+  const handleCardDeleteRequest = (cardId: string, x?: number, y?: number) => {
     setDeleteConfirmCardId(cardId);
-    setDeleteConfirmPosition({ x, y });
   };
 
   const handleDeleteConfirm = () => {
@@ -1718,11 +1801,9 @@ function App() {
         editingStackId={editingStackId} // Pass stack editing state
         editingConnectionId={editingConnectionId} // Pass connection editing state
         highlightedCardIds={highlightedCardIds} // Pass highlighted cards
-        isTimelineVisible={isTimelineVisible} // Pass timeline visibility
-        onTimelineCardClick={handleTimelineCardClick} // Pass timeline click handler
-        onTimelineCardHover={handleTimelineCardHover} // Pass timeline hover handler
         canvasZoom={canvasZoom} // Pass canvas zoom
         canvasTranslate={canvasTranslate} // Pass canvas translation
+        onCanvasTranslationChange={handleCanvasTranslationChange} // Pass canvas translation callback
       />
       {/* Markdown renderers for card content */}
       {cardPositions.map(({ card, x, y, width, height, scale, isEditing }) => 
@@ -1781,12 +1862,23 @@ function App() {
           message={`Are you sure you want to delete the card "${stacks.flatMap(s => s.cards).find(c => c.id === deleteConfirmCardId)?.title || 'Untitled'}"? This action cannot be undone.`}
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}
-          x={deleteConfirmPosition.x}
-          y={deleteConfirmPosition.y}
         />
       )}
       {/* Debug button for development mode */}
       <DebugButton />
+      
+      {/* Timeline component - viewport-fixed at bottom */}
+      {isTimelineVisible && (
+        <Timeline
+          stacks={stacks}
+          onCardClick={handleTimelineCardClick}
+          onCardHover={handleTimelineCardHover}
+          highlightedCardIds={highlightedCardIds}
+          sidebarWidth={LAYOUT.SIDEBAR_WIDTH}
+          canvasZoom={canvasZoom}
+          canvasTranslate={canvasTranslate}
+        />
+      )}
     </div>
   );
 }
