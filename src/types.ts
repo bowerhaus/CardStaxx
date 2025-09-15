@@ -15,6 +15,7 @@ export interface StackData {
   x: number;
   y: number;
   cards: NotecardData[];
+  title?: string; // Optional stack title for multi-card stacks
 }
 
 export interface ConnectionData {

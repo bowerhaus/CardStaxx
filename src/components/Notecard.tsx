@@ -10,6 +10,7 @@ interface NotecardProps {
   onResize?: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen?: (cardId: string, x: number, y: number) => void;
   onDelete?: (cardId: string, x: number, y: number) => void;
+  onBreakOut?: (cardId: string) => void;
   isEditing?: boolean;
   isResizing?: boolean;
   isHighlighted?: boolean;
@@ -18,7 +19,7 @@ interface NotecardProps {
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, isEditing = false, isResizing = false, isHighlighted = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, onBreakOut, isEditing = false, isResizing = false, isHighlighted = false }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -247,6 +248,37 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, is
         }}
       />
       
+
+      {/* Break out button - adjacent to delete button */}
+      {onBreakOut && (
+        <>
+          <Text
+            text="🔗"
+            fontSize={12}
+            x={cardWidth - 48}
+            y={7}
+            fill="#0066cc"
+            listening={false}
+          />
+          <Rect
+            x={cardWidth - 48}
+            y={7}
+            width={16}
+            height={16}
+            fill="rgba(0,0,0,0)"
+            onMouseEnter={(e) => {
+              e.target.getStage()!.container().style.cursor = 'pointer';
+            }}
+            onMouseLeave={(e) => {
+              e.target.getStage()!.container().style.cursor = 'default';
+            }}
+            onClick={(e) => {
+              e.cancelBubble = true; // Prevent propagation to card
+              onBreakOut(card.id);
+            }}
+          />
+        </>
+      )}
 
       {/* Delete button - top-right corner */}
       {onDelete && (

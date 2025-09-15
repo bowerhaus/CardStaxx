@@ -7,17 +7,20 @@ import { FONT_FAMILY, CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
 
 interface StackProps {
   stack: StackData;
-  onDragEnd: (id: string, x: number, y: number) => void;
+  onDragEnd: (id: string, x: number, y: number, mouseX?: number, mouseY?: number) => void;
   onDragMove: (id: string, x: number, y: number) => void;
   onWheel: (id: string, deltaY: number) => void;
   onClick: (id: string) => void;
   onUpdateCard: (cardId: string, updates: Partial<NotecardData>) => void;
   onEditStart: (cardId: string, field: 'title' | 'content' | 'date' | 'key' | 'tags', konvaNode: Konva.Node) => void;
+  onStackTitleEditStart: (stackId: string, konvaNode: Konva.Node) => void;
   onCardResize: (cardId: string, newWidth: number, newHeight: number) => void;
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
+  onCardBreakOut: (cardId: string) => void;
   editingCardId?: string | null;
-  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | null;
+  editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
+  editingStackId?: string | null;
   highlightedCardIds?: Set<string>;
 }
 
@@ -31,11 +34,14 @@ const Stack = React.memo(({
   onClick,
   onUpdateCard,
   onEditStart,
+  onStackTitleEditStart,
   onCardResize,
   onColorPickerOpen,
   onCardDelete,
+  onCardBreakOut,
   editingCardId,
   editingField,
+  editingStackId,
   highlightedCardIds,
 }: StackProps) => {
   console.log('Stack received onEditStart:', onEditStart);
@@ -51,7 +57,24 @@ const Stack = React.memo(({
   };
 
   const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
-    onDragEnd(stack.id, e.target.x(), e.target.y());
+    // Get the mouse position at the time of drag end
+    const stage = e.target.getStage();
+    let mouseX: number | undefined;
+    let mouseY: number | undefined;
+    
+    if (stage) {
+      const pointerPos = stage.getPointerPosition();
+      if (pointerPos) {
+        // Convert screen coordinates to canvas coordinates (accounting for zoom and translation)
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        const canvasPos = transform.point(pointerPos);
+        mouseX = canvasPos.x;
+        mouseY = canvasPos.y;
+      }
+    }
+    
+    onDragEnd(stack.id, e.target.x(), e.target.y(), mouseX, mouseY);
   };
 
   const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
@@ -109,23 +132,57 @@ const Stack = React.memo(({
         shadowOpacity={0.5}
       />
       
-      {/* "Card X of Y" header for multi-card stacks */}
+      {/* Stack title and card count for multi-card stacks */}
       {stack.cards.length > 1 && (() => {
         // The top visible card is the last card in the array (highest index)
-        // Since scrolling rearranges the array, we need a better way to track position
-        // For now, let's use a simpler approach: sort cards by ID to get stable ordering
-        const sortedCards = [...stack.cards].sort((a, b) => a.id.localeCompare(b.id));
+        // To get the correct position, we need to establish a stable ordering
+        // Use creation date as a stable sort key, falling back to ID if dates are equal
+        const sortedCards = [...stack.cards].sort((a, b) => {
+          const dateA = new Date(a.date).getTime();
+          const dateB = new Date(b.date).getTime();
+          return dateA !== dateB ? dateA - dateB : a.id.localeCompare(b.id);
+        });
         const topCard = stack.cards[stack.cards.length - 1];
         const currentCardNumber = sortedCards.findIndex(card => card.id === topCard.id) + 1;
+        const stackTitle = stack.title || 'Untitled Stack';
+        const isEditingTitle = editingStackId === stack.id && editingField === 'stack-title';
         
         return (
           <>
-            {/* Header text - minimal spacing */}
+            {/* Stack title - left aligned, editable */}
             <Text
-              text={`Card ${currentCardNumber} of ${stack.cards.length}`}
+              text={stackTitle}
+              fontSize={10}
+              fill={isEditingTitle ? "#0066cc" : "#333"}
+              fontWeight={isEditingTitle ? "bold" : "normal"}
+              x={borderPadding + 1}
+              y={2}
+              fontFamily={FONT_FAMILY}
+              listening={true}
+              onDblClick={(e) => {
+                if (!isEditingTitle) {
+                  e.cancelBubble = true;
+                  onStackTitleEditStart(stack.id, e.target);
+                }
+              }}
+              onMouseEnter={(e) => {
+                if (!isEditingTitle) {
+                  e.target.getStage()!.container().style.cursor = 'text';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isEditingTitle) {
+                  e.target.getStage()!.container().style.cursor = 'default';
+                }
+              }}
+            />
+            
+            {/* Card count - right aligned */}
+            <Text
+              text={`${currentCardNumber}/${stack.cards.length}`}
               fontSize={10}
               fill="#666"
-              x={borderPadding + 1}
+              x={stackWidth - borderPadding - 30} // Position from right edge
               y={2}
               fontFamily={FONT_FAMILY}
               listening={false}
@@ -164,6 +221,7 @@ const Stack = React.memo(({
               onEditStart={onEditStart}
               onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
               onDelete={isTopCard ? onCardDelete : undefined} // Only top card can be deleted
+              onBreakOut={isTopCard && stack.cards.length > 1 ? onCardBreakOut : undefined} // Only top card in multi-card stacks can be broken out
               isEditing={editingCardId === card.id && editingField === 'content'} // Pass editing state
               isHighlighted={highlightedCardIds?.has(card.id) || false} // Pass highlighting state
             />

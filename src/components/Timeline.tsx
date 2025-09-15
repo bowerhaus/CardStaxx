@@ -1,6 +1,6 @@
 import React from 'react';
 import { StackData } from '../types';
-import { CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
+import { CARD_WIDTH, CARD_HEIGHT, FONT_FAMILY } from '../constants/typography';
 
 // Default card dimensions (imported from constants)
 const HEADER_OFFSET = 40;
@@ -31,23 +31,32 @@ const getStackCenterPosition = (stack: StackData): { x: number; y: number } => {
 
 interface TimelineProps {
   stacks: StackData[];
-  canvasHeight: number;
-  canvasWidth: number;
   onCardClick?: (cardId: string) => void;
   onCardHover?: (cardId: string | null) => void;
   highlightedCardIds?: Set<string>;
   sidebarWidth?: number;
+  canvasZoom?: number;
+  canvasTranslate?: {x: number; y: number};
 }
 
 const Timeline: React.FC<TimelineProps> = ({ 
-  stacks, 
-  canvasHeight, 
-  canvasWidth,
+  stacks,
   onCardClick,
   onCardHover,
   highlightedCardIds,
-  sidebarWidth = 320
+  sidebarWidth = 320,
+  canvasZoom = 1,
+  canvasTranslate = {x: 0, y: 0}
 }) => {
+  // Transform canvas coordinates to viewport coordinates
+  // Note: SVG overlay is already positioned at left: sidebarWidth, so no additional offset needed
+  const canvasToViewport = (canvasX: number, canvasY: number) => {
+    return {
+      x: canvasX * canvasZoom + canvasTranslate.x,
+      y: canvasY * canvasZoom + canvasTranslate.y
+    };
+  };
+
   // Get all cards with dates and sort them
   const allCards = stacks.flatMap(stack => 
     stack.cards.map(card => ({
@@ -79,19 +88,21 @@ const Timeline: React.FC<TimelineProps> = ({
         padding: '10px',
         borderRadius: '4px',
         fontSize: '12px',
-        color: '#666'
+        color: '#666',
+        fontFamily: FONT_FAMILY
       }}>
         No cards with dates found. Add dates to your cards to see them on the timeline.
       </div>
     ); // Show helpful message when no cards have dates
   }
 
-  // Calculate timeline dimensions and positioning (relative to canvas area, not full window)
+  // Calculate timeline dimensions for viewport-fixed positioning
   const TIMELINE_HEIGHT = 60;
   const TIMELINE_MARGIN = 20;
-  const timelineTop = canvasHeight - TIMELINE_HEIGHT - TIMELINE_MARGIN;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
   const timelineLeft = TIMELINE_MARGIN;
-  const timelineWidth = canvasWidth - (TIMELINE_MARGIN * 2);
+  const timelineWidth = viewportWidth - sidebarWidth - (TIMELINE_MARGIN * 2);
 
   // Get date range
   const earliestDate = new Date(datedCards[0].date);
@@ -142,7 +153,7 @@ const Timeline: React.FC<TimelineProps> = ({
     return {
       ...card,
       timelineX: x,
-      timelineY: timelineTop + 30 // Position cards in middle of timeline
+      timelineY: TIMELINE_HEIGHT / 2 // Position cards in middle of timeline
     };
   });
 
@@ -162,11 +173,11 @@ const Timeline: React.FC<TimelineProps> = ({
       {highlightedCardIds && highlightedCardIds.size > 0 && (
         <svg
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: 0,
-            left: 0,
-            width: canvasWidth,
-            height: canvasHeight,
+            left: sidebarWidth,
+            width: viewportWidth - sidebarWidth,
+            height: viewportHeight,
             pointerEvents: 'none',
             zIndex: 999
           }}
@@ -177,18 +188,21 @@ const Timeline: React.FC<TimelineProps> = ({
             
             if (!isHighlighted) return null;
             
-            // Calculate timeline icon position (no sidebar offset needed now)
+            // Calculate timeline icon position
             const timelineIconX = firstCard.timelineX;
-            const timelineIconY = firstCard.timelineY;
+            // Timeline Y position needs to be relative to viewport since timeline is fixed at bottom
+            const timelineIconY = viewportHeight - TIMELINE_MARGIN - TIMELINE_HEIGHT / 2;
             
             // Find the stack that contains this card and get its center position
             const cardStack = stacks.find(stack => 
               stack.cards.some(c => c.id === firstCard.id)
             );
-            const centerPos = cardStack ? getStackCenterPosition(cardStack) : {
+            const canvasCenterPos = cardStack ? getStackCenterPosition(cardStack) : {
               x: firstCard.stackPosition.x + (firstCard.width || CARD_WIDTH) / 2,
               y: firstCard.stackPosition.y + (firstCard.height || CARD_HEIGHT) / 2
             };
+            // Transform canvas coordinates to viewport coordinates
+            const centerPos = canvasToViewport(canvasCenterPos.x, canvasCenterPos.y);
             
             return (
               <line
@@ -198,9 +212,9 @@ const Timeline: React.FC<TimelineProps> = ({
                 x2={centerPos.x}
                 y2={centerPos.y}
                 stroke="#ffc107"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-                opacity="0.8"
+                strokeWidth="3"
+                strokeDasharray="8,4"
+                opacity="0.9"
               />
             );
           })}
@@ -210,9 +224,9 @@ const Timeline: React.FC<TimelineProps> = ({
       {/* Timeline container */}
       <div
         style={{
-          position: 'absolute',
-          top: timelineTop,
-          left: timelineLeft,
+          position: 'fixed',
+          bottom: TIMELINE_MARGIN,
+          left: sidebarWidth + TIMELINE_MARGIN,
           width: timelineWidth,
           height: TIMELINE_HEIGHT,
           backgroundColor: 'rgba(255, 255, 255, 0.9)',
@@ -264,7 +278,8 @@ const Timeline: React.FC<TimelineProps> = ({
           top: '5px',
           fontSize: '10px',
           color: '#666',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          fontFamily: FONT_FAMILY
         }}
       >
         {earliestDate.toLocaleDateString('en-GB')}
@@ -276,7 +291,8 @@ const Timeline: React.FC<TimelineProps> = ({
           top: '5px',
           fontSize: '10px',
           color: '#666',
-          fontWeight: 'bold'
+          fontWeight: 'bold',
+          fontFamily: FONT_FAMILY
         }}
       >
         {latestDate.toLocaleDateString('en-GB')}
