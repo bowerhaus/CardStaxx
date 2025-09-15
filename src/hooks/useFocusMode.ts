@@ -12,7 +12,8 @@ interface ViewSettings {
 export const useFocusMode = (
   stacks: StackData[],
   searchFilters: SearchFilters,
-  getFilteredStacks: () => StackData[]
+  getFilteredStacks: () => StackData[],
+  sidebarWidth: number
 ) => {
   const [canvasZoom, setCanvasZoom] = useState<number>(1);
   const [canvasTranslate, setCanvasTranslate] = useState<{x: number; y: number}>({x: 0, y: 0});
@@ -42,7 +43,7 @@ export const useFocusMode = (
 
     // Calculate bounding box of all visible cards using exact same logic as Stack.tsx
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    const SIDEBAR_WIDTH = LAYOUT.SIDEBAR_WIDTH;
+    const SIDEBAR_WIDTH = sidebarWidth;
     const CANVAS_MARGIN = 100; // Margin around focused area
     
     filteredStacks.forEach(stack => {

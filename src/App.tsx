@@ -19,6 +19,7 @@ import { useCardOperations } from './hooks/useCardOperations';
 import { useStackOperations } from './hooks/useStackOperations';
 import { useConnectionOperations } from './hooks/useConnectionOperations';
 import { useTimeline } from './hooks/useTimeline';
+import { useSidebarResize } from './hooks/useSidebarResize';
 
 // Services
 import { generateMovieDemoData } from './services/demoDataService';
@@ -69,7 +70,8 @@ function App() {
   );
   
   const search = useSearch(stacks);
-  const focusMode = useFocusMode(stacks, search.searchFilters, search.getFilteredStacks);
+  const sidebarResize = useSidebarResize();
+  const focusMode = useFocusMode(stacks, search.searchFilters, search.getFilteredStacks, sidebarResize.sidebarWidth);
   const timeline = useTimeline();
 
   // Event handlers
@@ -95,7 +97,8 @@ function App() {
     focusMode.canvasZoom,
     focusMode.canvasTranslate,
     editingState.editingCardId,
-    editingState.editingField
+    editingState.editingField,
+    sidebarResize.sidebarWidth
   );
   
   const overlayPos = getOverlayPosition(
@@ -104,12 +107,14 @@ function App() {
     editingState.editingField,
     editingState.editingConnectionId,
     editingState.editingTextValue,
-    cardPositions
+    cardPositions,
+    sidebarResize.sidebarWidth
   );
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <Sidebar 
+      <Sidebar
+        width={sidebarResize.sidebarWidth} 
         onCreateCard={cardOps.handleCreateCard}
         onSave={() => workspace.saveWorkspace(workspace.currentFilePath, stacks, connections)}
         onSaveAs={() => workspace.saveWorkspace(undefined, stacks, connections)}
@@ -135,6 +140,30 @@ function App() {
         onFocusToggle={focusMode.handleFocusToggle}
         isFocusModeEnabled={focusMode.isFocusModeEnabled}
       />
+
+      {/* Resize handle */}
+      <div
+        style={{
+          width: '4px',
+          backgroundColor: sidebarResize.isResizing ? '#ff7b00' : '#e0e0e0',
+          cursor: 'col-resize',
+          transition: sidebarResize.isResizing ? 'none' : 'background-color 0.2s ease',
+          position: 'relative',
+          zIndex: 1000
+        }}
+        onMouseDown={sidebarResize.startResize}
+        onMouseEnter={(e) => {
+          if (!sidebarResize.isResizing) {
+            e.currentTarget.style.backgroundColor = '#ff7b00';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!sidebarResize.isResizing) {
+            e.currentTarget.style.backgroundColor = '#e0e0e0';
+          }
+        }}
+      />
+
       <Canvas
         stacks={search.filteredStacks}
         connections={connections}
@@ -163,6 +192,7 @@ function App() {
         canvasZoom={focusMode.canvasZoom}
         canvasTranslate={focusMode.canvasTranslate}
         onCanvasTranslationChange={focusMode.handleCanvasTranslationChange}
+        sidebarWidth={sidebarResize.sidebarWidth}
       />
       
       {/* Markdown renderers for card content */}
@@ -238,7 +268,7 @@ function App() {
           onCardClick={handleTimelineCardClick}
           onCardHover={handleTimelineCardHover}
           highlightedCardIds={search.highlightedCardIds}
-          sidebarWidth={LAYOUT.SIDEBAR_WIDTH}
+          sidebarWidth={sidebarResize.sidebarWidth}
           canvasZoom={focusMode.canvasZoom}
           canvasTranslate={focusMode.canvasTranslate}
         />

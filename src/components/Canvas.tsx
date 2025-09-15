@@ -61,6 +61,7 @@ interface CanvasProps {
   canvasZoom?: number;
   canvasTranslate?: {x: number; y: number};
   onCanvasTranslationChange?: (newTranslate: {x: number; y: number}) => void;
+  sidebarWidth?: number;
 }
 
 const Canvas = React.memo(({
@@ -90,12 +91,13 @@ const Canvas = React.memo(({
   highlightedCardIds,
   canvasZoom = 1,
   canvasTranslate = {x: 0, y: 0},
-  onCanvasTranslationChange
+  onCanvasTranslationChange,
+  sidebarWidth = LAYOUT.SIDEBAR_WIDTH
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   
   // Canvas dimensions with resize listener
-  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
+  const [canvasWidth, setCanvasWidth] = useState(window.innerWidth - sidebarWidth);
   const [canvasHeight, setCanvasHeight] = useState(window.innerHeight);
 
   // Canvas drag state for panning
@@ -104,13 +106,18 @@ const Canvas = React.memo(({
 
   useEffect(() => {
     const handleResize = () => {
-      setCanvasWidth(window.innerWidth - LAYOUT.SIDEBAR_WIDTH);
+      setCanvasWidth(window.innerWidth - sidebarWidth);
       setCanvasHeight(window.innerHeight);
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [sidebarWidth]);
+
+  // Update canvas width when sidebar width changes
+  useEffect(() => {
+    setCanvasWidth(window.innerWidth - sidebarWidth);
+  }, [sidebarWidth]);
 
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {

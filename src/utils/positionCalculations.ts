@@ -22,11 +22,12 @@ export const getCardScreenPositions = (
   canvasZoom: number,
   canvasTranslate: {x: number; y: number},
   editingCardId: string | null,
-  editingField: string | null
+  editingField: string | null,
+  sidebarWidth: number
 ): CardPosition[] => {
   const positions: CardPosition[] = [];
 
-  const SIDEBAR_WIDTH = LAYOUT.SIDEBAR_WIDTH; // Match the Canvas component sidebar offset
+  const SIDEBAR_WIDTH = sidebarWidth; // Match the Canvas component sidebar offset
 
   stacks.forEach(stack => {
     if (stack.cards && stack.cards.length > 0) {
@@ -95,7 +96,8 @@ export const getOverlayPosition = (
   editingField: string | null,
   editingConnectionId: string | null,
   editingTextValue: string,
-  cardPositions: CardPosition[]
+  cardPositions: CardPosition[],
+  sidebarWidth?: number
 ) => {
   // Handle MarkdownRenderer-triggered editing
   if (!editingKonvaNode && editingCardId && editingField === 'content') {

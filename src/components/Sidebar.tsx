@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { NotecardData, SearchFilters, SearchResult } from '../types';
 import { FONT_FAMILY } from '../constants/typography';
-import { LAYOUT } from '../constants/layout';
 
 interface SidebarProps {
+  width: number;
   onCreateCard: (cardData?: Partial<NotecardData>) => void;
   onSave: () => void;
   onSaveAs: () => void;
@@ -30,14 +30,15 @@ interface SidebarProps {
   isFocusModeEnabled: boolean;
 }
 
-const Sidebar = ({ 
-  onCreateCard, 
-  onSave, 
-  onSaveAs, 
-  onLoad, 
+const Sidebar = ({
+  width,
+  onCreateCard,
+  onSave,
+  onSaveAs,
+  onLoad,
   onNew,
   onLoadDemo,
-  hasUnsavedChanges, 
+  hasUnsavedChanges,
   currentFilePath,
   searchFilters,
   onSearchChange,
@@ -92,9 +93,9 @@ const Sidebar = ({
   };
 
   return (
-    <div style={{ 
-      width: `${LAYOUT.SIDEBAR_WIDTH}px`, 
-      borderRight: '1px solid #e0e0e0', 
+    <div style={{
+      width: `${width}px`,
+      borderRight: '1px solid #e0e0e0',
       padding: '16px',
       height: '100vh',
       backgroundColor: '#fafafa',
