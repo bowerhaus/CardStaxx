@@ -27,6 +27,9 @@ const saveSettings = (settings: any) => {
 // This is a global variable provided by the Webpack plugin.
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 
+// Keep a reference to the main window for DevTools control
+let mainWindow: BrowserWindow | null = null;
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -37,11 +40,13 @@ function createWindow() {
     },
   });
 
+  mainWindow = win;
+
   // and load the index.html of the app.
   win.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  win.webContents.openDevTools();
+  // DevTools are now controlled manually via debug button
+  // Remove automatic opening to prevent always showing DevTools
 }
 
 app.whenReady().then(createWindow);
@@ -131,4 +136,30 @@ ipcMain.handle('set-last-opened-file', async (event, filePath: string) => {
   settings.lastOpenedFile = filePath;
   saveSettings(settings);
   return true;
+});
+
+// IPC handler for DevTools control (development mode only)
+ipcMain.handle('toggle-devtools', async () => {
+  console.log('toggle-devtools handler called');
+  console.log('app.isPackaged:', app.isPackaged);
+  console.log('mainWindow exists:', !!mainWindow);
+  
+  // Only allow DevTools in development mode
+  if (!app.isPackaged && mainWindow) {
+    const isOpened = mainWindow.webContents.isDevToolsOpened();
+    console.log('DevTools currently opened:', isOpened);
+    
+    if (isOpened) {
+      mainWindow.webContents.closeDevTools();
+      console.log('DevTools closed');
+      return { opened: false };
+    } else {
+      mainWindow.webContents.openDevTools();
+      console.log('DevTools opened');
+      return { opened: true };
+    }
+  }
+  
+  console.log('DevTools not available - app packaged or no window');
+  return { opened: false, error: 'DevTools not available' };
 });

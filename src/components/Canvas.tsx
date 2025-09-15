@@ -211,8 +211,8 @@ const Canvas = React.memo(({
         height={canvasHeight}
         scaleX={canvasZoom}
         scaleY={canvasZoom}
-        x={canvasTranslate.x * canvasZoom}
-        y={canvasTranslate.y * canvasZoom}
+        x={canvasTranslate.x}
+        y={canvasTranslate.y}
         onMouseMove={handleMouseMove}
       >
         {/* Layer for Stacks (background) */}

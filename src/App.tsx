@@ -5,6 +5,7 @@ import EditableTextOverlay from './components/EditableTextOverlay'; // Import ne
 import ColorPicker from './components/ColorPicker';
 import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
+import DebugButton from './components/DebugButton';
 import { NotecardData, StackData, ConnectionData, WorkspaceData, CARD_COLORS, SearchFilters, SearchResult } from './types';
 import { CARD_WIDTH, CARD_HEIGHT } from './constants/typography';
 import { LAYOUT } from './constants/layout';
@@ -676,10 +677,10 @@ function App() {
       return { zoom: 1, translate: { x: 0, y: 0 } };
     }
 
-    // Calculate bounding box of all visible cards
+    // Calculate bounding box of all visible cards using exact same logic as Stack.tsx
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     const SIDEBAR_WIDTH = LAYOUT.SIDEBAR_WIDTH;
-    const CANVAS_MARGIN = 50; // Margin around focused area
+    const CANVAS_MARGIN = 100; // Margin around focused area (increased for better visibility)
     
     filteredStacks.forEach(stack => {
       if (stack.cards && stack.cards.length > 0) {
@@ -687,19 +688,30 @@ function App() {
         const cardWidth = topCard.width || CARD_WIDTH;
         const cardHeight = topCard.height || CARD_HEIGHT;
         
-        // Calculate stack bounds (similar to getStackCenterPosition)
+        // Calculate stack bounds using EXACT same logic as Stack.tsx
         const borderPadding = 10;
         const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
-        const cardIndex = stack.cards.length - 1;
+        const totalCards = stack.cards.length;
+        const topCardIndex = totalCards - 1; // Index of the topmost card
+        const scale = 1.0; // Top card is always full scale
         const HEADER_OFFSET = 40;
         
-        const xOffset = borderPadding;
-        const yOffset = borderPadding + headerTextSpace + cardIndex * HEADER_OFFSET;
+        // Exact calculation from Stack.tsx lines 208-209
+        const xOffset = borderPadding + (cardWidth * (1 - scale)) / 2;
+        const yOffset = borderPadding + headerTextSpace + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
         
         const stackLeft = stack.x + xOffset;
         const stackTop = stack.y + yOffset;
         const stackRight = stackLeft + cardWidth;
         const stackBottom = stackTop + cardHeight;
+        
+        console.log(`Focus calc - Stack ${stack.id}:`, {
+          stackX: stack.x, stackY: stack.y,
+          xOffset, yOffset,
+          stackLeft, stackTop, stackRight, stackBottom,
+          cardWidth, cardHeight,
+          borderPadding, headerTextSpace, topCardIndex, HEADER_OFFSET
+        });
         
         minX = Math.min(minX, stackLeft);
         minY = Math.min(minY, stackTop);
@@ -724,15 +736,59 @@ function App() {
     const scaleY = (canvasHeight - CANVAS_MARGIN * 2) / contentHeight;
     const scale = Math.min(scaleX, scaleY, 2); // Max 200% zoom
     
-    // Calculate translation to center content
+    // Calculate translation to center content using correct Konva transformation formula
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
-    const translateX = (canvasWidth / 2) / scale - centerX;
-    const translateY = (canvasHeight / 2) / scale - centerY;
     
-    console.log('Focus calculations:', {scale, centerX, centerY, translateX, translateY});
+    // Konva transformation: finalPos = (originalPos * scale) + translate
+    // To center content: canvasCenter = (contentCenter * scale) + translate
+    // Therefore: translate = canvasCenter - (contentCenter * scale)
+    const translateX = (canvasWidth / 2) - (centerX * scale);
+    const translateY = (canvasHeight / 2) - (centerY * scale);
     
-    return { zoom: scale, translate: { x: translateX, y: translateY } };
+    // Bounds checking using correct transformation formula: screenPos = (originalPos * scale) + translate
+    const transformedMinY = (minY * scale) + translateY;
+    const transformedMaxY = (maxY * scale) + translateY;
+    
+    // Only adjust if content goes beyond margins
+    let finalTranslateY = translateY;
+    if (transformedMinY < CANVAS_MARGIN) {
+      // Content is too high, move it down
+      finalTranslateY = CANVAS_MARGIN - (minY * scale);
+    } else if (transformedMaxY > canvasHeight - CANVAS_MARGIN) {
+      // Content is too low, move it up  
+      finalTranslateY = (canvasHeight - CANVAS_MARGIN) - (maxY * scale);
+    }
+    
+    // Check X bounds as well
+    const transformedMinX = (minX * scale) + translateX;
+    const transformedMaxX = (maxX * scale) + translateX;
+    
+    let finalTranslateX = translateX;
+    if (transformedMinX < CANVAS_MARGIN) {
+      finalTranslateX = CANVAS_MARGIN - (minX * scale);
+    } else if (transformedMaxX > canvasWidth - CANVAS_MARGIN) {
+      finalTranslateX = (canvasWidth - CANVAS_MARGIN) - (maxX * scale);
+    }
+    
+    console.log('=== FOCUS CALCULATION DETAILS ===');
+    console.log('Content bounds:', {minX, minY, maxX, maxY, contentWidth, contentHeight});
+    console.log('Canvas dimensions:', {canvasWidth, canvasHeight});
+    console.log('Scale calculation:', {scaleX, scaleY, finalScale: scale});
+    console.log('Center calculation:', {centerX, centerY});
+    console.log('Initial translate:', {translateX, translateY});
+    console.log('Bounds checking:');
+    console.log('  transformedMinY:', (minY * scale) + translateY);
+    console.log('  transformedMaxY:', (maxY * scale) + translateY);
+    console.log('  CANVAS_MARGIN:', CANVAS_MARGIN);
+    console.log('  canvasHeight:', canvasHeight);
+    console.log('Final translate:', {x: finalTranslateX, y: finalTranslateY});
+    console.log('Final transformed bounds:');
+    console.log('  finalMinY:', (minY * scale) + finalTranslateY);
+    console.log('  finalMaxY:', (maxY * scale) + finalTranslateY);
+    console.log('================================');
+    
+    return { zoom: scale, translate: { x: finalTranslateX, y: finalTranslateY } };
   }, [stacks, searchFilters]);
 
   // Update search results when filters or stacks change
@@ -1555,20 +1611,35 @@ function App() {
         const topCardIndex = totalCards - 1;
         const cardScale = 1.0; // Top card is always full scale within the stack
         const xOffset = borderPadding + (cardWidth * (1 - cardScale)) / 2;
-        const yOffset = borderPadding + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - cardScale)) / 2;
+        const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+        const yOffset = borderPadding + headerTextSpace + topCardIndex * HEADER_OFFSET + (cardHeight * (1 - cardScale)) / 2;
         
         // Apply canvas transformation (zoom and translation)
         const canvasX = stack.x + xOffset;
         const canvasY = stack.y + yOffset;
         
+        console.log(`Screen pos - Stack ${stack.id}:`, {
+          stackX: stack.x, stackY: stack.y,
+          xOffset, yOffset,
+          canvasX, canvasY,
+          cardWidth, cardHeight,
+          borderPadding, headerTextSpace, topCardIndex,
+          canvasZoom, canvasTranslate
+        });
         
         // Apply the same transformation as the Konva Stage:
-        // Konva Stage has: x={canvasTranslate.x * canvasZoom}, y={canvasTranslate.y * canvasZoom}, scaleX={canvasZoom}, scaleY={canvasZoom}
-        // In Konva's transformation matrix: final = original * scale + translation
-        // But since the translation is already pre-scaled by canvasZoom, we need:
-        // final = original * scale + (pre-scaled translation)
-        const screenX = SIDEBAR_WIDTH + (canvasX * canvasZoom) + (canvasTranslate.x * canvasZoom);
-        const screenY = (canvasY * canvasZoom) + (canvasTranslate.y * canvasZoom);
+        // Konva Stage has: x={canvasTranslate.x}, y={canvasTranslate.y}, scaleX={canvasZoom}, scaleY={canvasZoom}
+        // In Konva's transformation matrix: final = (original * scale) + translation
+        const screenX = SIDEBAR_WIDTH + (canvasX * canvasZoom) + canvasTranslate.x;
+        const screenY = (canvasY * canvasZoom) + canvasTranslate.y;
+        
+        console.log(`Screen transform - Stack ${stack.id}:`, {
+          canvasX, canvasY, canvasZoom,
+          translateX: canvasTranslate.x, translateY: canvasTranslate.y,
+          screenX, screenY,
+          'expected_screenY_check': (canvasY * canvasZoom) + canvasTranslate.y,
+          'calculation': `screenY = (${canvasY} * ${canvasZoom}) + ${canvasTranslate.y} = ${screenY}`
+        });
         const screenWidth = cardWidth * canvasZoom;
         const screenHeight = cardHeight * canvasZoom;
         
@@ -1714,6 +1785,8 @@ function App() {
           y={deleteConfirmPosition.y}
         />
       )}
+      {/* Debug button for development mode */}
+      <DebugButton />
     </div>
   );
 }
