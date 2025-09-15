@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Group, Rect, Text } from 'react-konva';
 import { NotecardData, CARD_COLORS } from '../types';
 import { CARD_WIDTH, CARD_HEIGHT } from '../constants/typography';
+import KonvaMarkdownImage from './KonvaMarkdownImage';
 import Konva from 'konva';
 
 interface NotecardProps {
@@ -14,12 +15,13 @@ interface NotecardProps {
   isEditing?: boolean;
   isResizing?: boolean;
   isHighlighted?: boolean;
+  renderContent?: boolean;
 }
 
 const TITLE_PADDING = 10;
 const CONTENT_PADDING_TOP = 35;
 
-const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, onBreakOut, isEditing = false, isResizing = false, isHighlighted = false }: NotecardProps) => {
+const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, onBreakOut, isEditing = false, isResizing = false, isHighlighted = false, renderContent = true }: NotecardProps) => {
   const titleTextRef = useRef<Konva.Text>(null);
   const contentTextRef = useRef<Konva.Text>(null);
   const dateTextRef = useRef<Konva.Text>(null);
@@ -31,6 +33,7 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, on
   // Use card dimensions if available, otherwise fall back to defaults
   const cardWidth = card.width || CARD_WIDTH;
   const cardHeight = card.height || CARD_HEIGHT;
+
   
   const handleResize = (newWidth: number, newHeight: number) => {
     if (onResize && newWidth >= 100 && newHeight >= 80) { // Minimum sizes
@@ -218,35 +221,56 @@ const Notecard = ({ card, onEditStart, onResize, onColorPickerOpen, onDelete, on
       />
       
       
-      <Text
-        ref={contentTextRef}
-        text={card.content}
-        fontSize={14}
-        x={TITLE_PADDING}
-        y={getContentY()}
-        width={cardWidth - TITLE_PADDING * 2}
-        height={cardHeight - getContentY() - 40}
-        listening={false}
-        visible={isEditing} // Only show plain text when editing
-      />
-      {/* Transparent Rect for content hit detection */}
-      <Rect
-        x={TITLE_PADDING}
-        y={getContentY()}
-        width={cardWidth - TITLE_PADDING * 2}
-        height={cardHeight - getContentY() - 40}
-        fill="rgba(0,0,0,0)" // Transparent fill
-        onMouseEnter={(e) => {
-          e.target.getStage()!.container().style.cursor = 'text';
-        }}
-        onMouseLeave={(e) => {
-          e.target.getStage()!.container().style.cursor = 'default';
-        }}
-        onDblClick={() => {
-          console.log('Content hit rect double-clicked!');
-          contentTextRef.current && onEditStart(card.id, 'content', contentTextRef.current);
-        }}
-      />
+      {/* Content area - use conditional rendering for cleaner state transitions */}
+      {isEditing ? (
+        /* Plain text content for editing mode */
+        <Text
+          ref={contentTextRef}
+          text={card.content}
+          fontSize={14}
+          x={TITLE_PADDING}
+          y={getContentY()}
+          width={cardWidth - TITLE_PADDING * 2}
+          height={cardHeight - getContentY() - 40}
+          listening={false}
+        />
+      ) : (
+        /* Markdown image content for display mode */
+        card.content && renderContent && (
+          <KonvaMarkdownImage
+            content={card.content}
+            x={0} // Relative to the Group, so start at 0
+            y={0} // Relative to the Group, so start at 0
+            width={cardWidth}
+            height={cardHeight}
+            card={card}
+            onEditStart={onEditStart}
+          />
+        )
+      )}
+      {/* Transparent Rect for content hit detection - TEMPORARILY DISABLED */}
+      {false && (
+        <Rect
+          x={TITLE_PADDING}
+          y={getContentY()}
+          width={cardWidth - TITLE_PADDING * 2}
+          height={cardHeight - getContentY() - 40}
+          fill="rgba(0,0,0,0)" // Transparent fill
+          onMouseEnter={(e) => {
+            e.target.getStage()!.container().style.cursor = 'text';
+          }}
+          onMouseLeave={(e) => {
+            e.target.getStage()!.container().style.cursor = 'default';
+          }}
+          onDblClick={() => {
+            contentTextRef.current && onEditStart(card.id, 'content', contentTextRef.current);
+          }}
+          onWheel={(e) => {
+            console.log('*** HIT RECT WHEEL EVENT - PASSING THROUGH ***');
+            // Don't preventDefault or stopPropagation - let it bubble to the content image
+          }}
+        />
+      )}
       
 
       {/* Break out button - adjacent to delete button */}

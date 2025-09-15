@@ -14,7 +14,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@types/html2canvas": "^0.5.35",
     "electron-squirrel-startup": "^1.0.1",
+    "html2canvas": "^1.4.1",
     "konva": "^10.0.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

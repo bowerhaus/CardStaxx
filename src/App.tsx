@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Sidebar from './components/Sidebar';
 import Canvas from './components/Canvas';
 import EditableTextOverlay from './components/EditableTextOverlay';
 import ColorPicker from './components/ColorPicker';
-import MarkdownRenderer from './components/MarkdownRenderer';
 import ConfirmDialog from './components/ConfirmDialog';
 import DebugButton from './components/DebugButton';
 import Timeline from './components/Timeline';
@@ -29,6 +28,7 @@ import { getCardScreenPositions, getOverlayPosition } from './utils/positionCalc
 
 function App() {
   // Main state
+  const [focusedCardId, setFocusedCardId] = useState<string | null>(null);
   const [stacks, setStacks] = useState<StackData[]>([
     {
       id: 'stack-1',
@@ -100,16 +100,40 @@ function App() {
     editingState.editingField,
     sidebarResize.sidebarWidth
   );
+
+  // Sort card positions by stack position (bottom-to-top rendering order)
+  // Stacks with higher Y coordinates render later and should have higher z-index
+  const sortedCardPositions = [...cardPositions].sort((a, b) => {
+    const stackA = search.filteredStacks.find(s => s.cards.some(c => c.id === a.card.id));
+    const stackB = search.filteredStacks.find(s => s.cards.some(c => c.id === b.card.id));
+    if (!stackA || !stackB) return 0;
+
+    // Primary sort by Y position, secondary by X position
+    const yDiff = stackA.y - stackB.y;
+    if (Math.abs(yDiff) > 5) return yDiff; // Only consider Y difference if significant
+    return stackA.x - stackB.x;
+  });
   
-  const overlayPos = getOverlayPosition(
+  // Memoize overlay position to prevent recreation during editing
+  // Only recalculate when editing state changes, not on every render
+  const overlayPos = useMemo(() => {
+    return getOverlayPosition(
+      editingState.editingKonvaNode,
+      editingState.editingCardId,
+      editingState.editingField,
+      editingState.editingConnectionId,
+      editingState.editingTextValue,
+      sortedCardPositions,
+      sidebarResize.sidebarWidth
+    );
+  }, [
     editingState.editingKonvaNode,
     editingState.editingCardId,
     editingState.editingField,
     editingState.editingConnectionId,
-    editingState.editingTextValue,
-    cardPositions,
+    // Deliberately NOT including sortedCardPositions to prevent recalculation on mouse movement
     sidebarResize.sidebarWidth
-  );
+  ]);
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
@@ -193,37 +217,13 @@ function App() {
         canvasTranslate={focusMode.canvasTranslate}
         onCanvasTranslationChange={focusMode.handleCanvasTranslationChange}
         sidebarWidth={sidebarResize.sidebarWidth}
+        onCardHover={setFocusedCardId}
       />
-      
-      {/* Markdown renderers for card content */}
-      {cardPositions.map(({ card, x, y, width, height, scale, isEditing }) => 
-        !isEditing && card.content && card.content.trim() !== '' ? (
-          <MarkdownRenderer
-            key={`markdown-${card.id}`}
-            content={card.content}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            scale={scale}
-            backgroundColor={card.backgroundColor}
-            card={card}
-            onEditStart={(cardId, field) => {
-              editingState.setEditingCardId(cardId);
-              editingState.setEditingField(field);
-              const targetCard = stacks.flatMap(s => s.cards).find(c => c.id === cardId);
-              if (targetCard && field === 'content') {
-                editingState.setEditingTextValue(targetCard.content || '');
-              }
-              editingState.setEditingKonvaNode(null);
-            }}
-          />
-        ) : null
-      )}
       
       {/* Text editing overlay */}
       {(((editingState.editingCardId && editingState.editingField) || editingState.editingConnectionId || (editingState.editingStackId && editingState.editingField === 'stack-title')) && (editingState.editingKonvaNode || (editingState.editingCardId && editingState.editingField === 'content') || (editingState.editingStackId && editingState.editingField === 'stack-title'))) && (
         <EditableTextOverlay
+          key={`${editingState.editingCardId}-${editingState.editingField}-${editingState.editingConnectionId}-${editingState.editingStackId}`}
           x={overlayPos.x}
           y={overlayPos.y}
           width={overlayPos.width}

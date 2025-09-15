@@ -410,4 +410,75 @@ This refactoring significantly improves codebase maintainability, making it easi
 
 ---
 
-*Last Updated: September 15, 2025 - Major App.tsx Refactoring Completed*
+---
+
+## ✅ COMPLETED: Markdown Text Overlap Fix - Option 4 Implementation (September 15, 2025)
+
+### Problem Statement:
+MarkdownRenderer components overlap when stacks are positioned over each other, causing text from one stack to appear over another stack's cards. Previous z-index and stacking context approaches failed.
+
+### Solution: Static Image Rendering (Option 4)
+Convert markdown content to static images rendered within the Konva canvas, eliminating DOM overlay complexity entirely.
+
+### Implementation Phases:
+
+#### ✅ Phase 1: Research & Setup (COMPLETED)
+- [x] **1.1** Research html2canvas for markdown-to-image conversion
+- [x] **1.2** Evaluate rendering approach and dependencies needed
+- [x] **1.3** Plan integration with existing MarkdownRenderer system
+
+#### ✅ Phase 2: Dependencies & Core Components (COMPLETED)
+- [x] **2.1** Install html2canvas and necessary dependencies
+- [x] **2.2** Create MarkdownToImageConverter service component
+- [x] **2.3** Implement off-screen HTML rendering for markdown
+- [x] **2.4** Create image caching system with content-based keys
+- [x] **2.5** Test proof-of-concept markdown-to-image conversion
+
+#### ✅ Phase 3: Konva Integration (COMPLETED)
+- [x] **3.1** Create KonvaMarkdownImage component using Konva Image nodes
+- [x] **3.2** Replace MarkdownRenderer with KonvaMarkdownImage in Notecard.tsx
+- [x] **3.3** Integrate images directly into card rendering pipeline
+- [x] **3.4** Handle image scaling for different zoom levels
+
+#### ✅ Phase 4: Editing Workflow (COMPLETED)
+- [x] **4.1** Implement image ↔ text overlay transition for editing
+- [x] **4.2** Trigger image regeneration when card content changes
+- [x] **4.3** Handle loading states during image generation
+- [x] **4.4** Optimize caching to minimize regeneration
+
+#### ✅ Phase 5: Performance & Polish (COMPLETED)
+- [x] **5.1** Implement memory management for image cache (100 items, 5-minute expiration)
+- [x] **5.2** Add error handling for rendering failures
+- [x] **5.3** Optimize image quality vs performance balance
+- [x] **5.4** Clean up old MarkdownRenderer components from App.tsx
+- [x] **5.5** Fix transparent background rendering
+
+#### ✅ Phase 6: Testing & Validation (COMPLETED)
+- [x] **6.1** Test with multiple overlapping cards (primary use case)
+- [x] **6.2** Verify performance with many cards
+- [x] **6.3** Test zoom and scaling behavior
+- [x] **6.4** Validate editing workflow seamlessly transitions
+
+### Technical Implementation:
+1. **Off-screen Rendering**: Created hidden HTML elements with markdown content using React and ReactMarkdown
+2. **Image Generation**: Used html2canvas to convert HTML to base64 images with transparent backgrounds
+3. **Konva Integration**: Display images as Konva Image nodes within Notecard components
+4. **Perfect Layering**: Images follow Konva drawing order, eliminating overlap issues completely
+5. **Caching Strategy**: Cache images by content hash with automatic cleanup (100 items max, 5-minute expiration)
+6. **Service Architecture**: Created `markdownToImageService.ts` as singleton service
+7. **Component Integration**: Added `KonvaMarkdownImage.tsx` component integrated into `Notecard.tsx`
+
+### Final Implementation Status: **FULLY COMPLETED AND WORKING**
+
+### Achieved Benefits:
+- ✅ **Perfect Layering**: Images render in correct canvas order, no more overlap issues
+- ✅ **No DOM Complexity**: Completely eliminated z-index and positioning issues
+- ✅ **Performance**: Cached images render faster than live DOM overlays
+- ✅ **All Cards Rendered**: Unlike previous implementation, ALL cards with content now display markdown
+- ✅ **Transparent Backgrounds**: Images properly show card background colors
+- ✅ **Clean Architecture**: Modular, maintainable service-based approach
+- ❌ **Text Selection**: Text is not selectable (acceptable trade-off for perfect rendering)
+
+---
+
+*Last Updated: September 15, 2025 - Option 4: Static Image Implementation COMPLETED*

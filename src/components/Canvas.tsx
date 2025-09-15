@@ -51,7 +51,7 @@ interface CanvasProps {
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
   onCardBreakOut: (cardId: string) => void;
-  onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node) => void;
+  onConnectionLabelEdit: (connectionId: string, konvaNode: Konva.Node, currentLabel?: string) => void;
   onConnectionDelete: (connectionId: string) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
@@ -62,6 +62,7 @@ interface CanvasProps {
   canvasTranslate?: {x: number; y: number};
   onCanvasTranslationChange?: (newTranslate: {x: number; y: number}) => void;
   sidebarWidth?: number;
+  onCardHover?: (cardId: string | null) => void;
 }
 
 const Canvas = React.memo(({
@@ -92,7 +93,8 @@ const Canvas = React.memo(({
   canvasZoom = 1,
   canvasTranslate = {x: 0, y: 0},
   onCanvasTranslationChange,
-  sidebarWidth = LAYOUT.SIDEBAR_WIDTH
+  sidebarWidth = LAYOUT.SIDEBAR_WIDTH,
+  onCardHover
 }: CanvasProps) => {
   console.log('Canvas received onEditStart:', onEditStart);
   
@@ -242,6 +244,7 @@ const Canvas = React.memo(({
               onColorPickerOpen={onColorPickerOpen}
               onCardDelete={onCardDelete}
               onCardBreakOut={onCardBreakOut}
+              onCardHover={onCardHover}
               editingCardId={editingCardId}
               editingField={editingField}
               editingStackId={editingStackId}
@@ -295,8 +298,8 @@ const Canvas = React.memo(({
                     stroke="grey"
                     strokeWidth={1}
                     opacity={0.9}
-                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
-                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
                   />
                   
                   {/* Label text */}
@@ -310,8 +313,8 @@ const Canvas = React.memo(({
                     verticalAlign="middle"
                     offsetX={connection.label ? (connection.label.length * 2.5) : 3}
                     offsetY={5}
-                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
-                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target)}
+                    onClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
+                    onDblClick={(e) => onConnectionLabelEdit(connection.id, e.target, connection.label)}
                   />
                   
                   {/* Delete button (small X) - shown when editing */}

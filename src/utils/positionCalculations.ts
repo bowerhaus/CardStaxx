@@ -110,12 +110,24 @@ export const getOverlayPosition = (
       if (cardPos.card.date) baseContentY = Math.max(baseContentY, 56);
       baseContentY = Math.max(baseContentY, cardPos.card.date ? 82 : 64);
       const TITLE_PADDING = 10;
-      
-      return {
+
+      const rawPos = {
         x: cardPos.x + TITLE_PADDING * cardPos.scale,
         y: cardPos.y + baseContentY * cardPos.scale,
         width: cardPos.width - TITLE_PADDING * 2 * cardPos.scale,
-        height: cardPos.height - baseContentY * cardPos.scale - 40 * cardPos.scale,
+        height: Math.max(60, cardPos.height - baseContentY * cardPos.scale - 40 * cardPos.scale),
+      };
+
+      // Apply viewport bounds checking
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const margin = 10;
+
+      return {
+        x: Math.max(margin, Math.min(rawPos.x, viewportWidth - rawPos.width - margin)),
+        y: Math.max(margin, Math.min(rawPos.y, viewportHeight - rawPos.height - margin)),
+        width: Math.min(rawPos.width, viewportWidth - 2 * margin),
+        height: Math.min(rawPos.height, viewportHeight - 2 * margin),
       };
     }
   }
@@ -132,36 +144,106 @@ export const getOverlayPosition = (
   if (editingConnectionId) {
     const labelText = editingTextValue || 'Label';
     const minWidth = Math.max(labelText.length * 8 + 16, 80); // Minimum 80px width
-    
-    const calculatedPos = {
+
+    const rawPos = {
       x: stageRect.left + nodeAbsolutePosition.x - minWidth / 2,
       y: stageRect.top + nodeAbsolutePosition.y - 9,
       width: minWidth,
       height: 18,
     };
-    console.log('Connection Overlay Position:', calculatedPos);
+
+    // Apply viewport bounds checking
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 10;
+
+    const calculatedPos = {
+      x: Math.max(margin, Math.min(rawPos.x, viewportWidth - rawPos.width - margin)),
+      y: Math.max(margin, Math.min(rawPos.y, viewportHeight - rawPos.height - margin)),
+      width: Math.min(rawPos.width, viewportWidth - 2 * margin),
+      height: Math.min(rawPos.height, viewportHeight - 2 * margin),
+    };
+    console.log('Connection Overlay Position:', { raw: rawPos, clamped: calculatedPos });
     return calculatedPos;
   }
 
   // Handle stack title editing
   if (editingField === 'stack-title') {
-    const stackTitlePos = {
+    const rawPos = {
       x: stageRect.left + nodeAbsolutePosition.x,
       y: stageRect.top + nodeAbsolutePosition.y,
       width: Math.max(120, editingKonvaNode.width() || 120), // Minimum width for stack titles
       height: 20,
     };
-    console.log('Stack Title Overlay Position:', stackTitlePos);
+
+    // Apply viewport bounds checking
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const margin = 10;
+
+    const stackTitlePos = {
+      x: Math.max(margin, Math.min(rawPos.x, viewportWidth - rawPos.width - margin)),
+      y: Math.max(margin, Math.min(rawPos.y, viewportHeight - rawPos.height - margin)),
+      width: Math.min(rawPos.width, viewportWidth - 2 * margin),
+      height: Math.min(rawPos.height, viewportHeight - 2 * margin),
+    };
+    console.log('Stack Title Overlay Position:', { raw: rawPos, clamped: stackTitlePos });
     return stackTitlePos;
   }
 
   // Handle card field editing
-  const calculatedPos = {
-    x: stageRect.left + nodeAbsolutePosition.x + TITLE_PADDING,
-    y: stageRect.top + nodeAbsolutePosition.y + (editingField === 'title' ? TITLE_PADDING : TITLE_PADDING),
-    width: editingKonvaNode.width() - TITLE_PADDING * 2,
-    height: editingField === 'title' ? 20 : editingKonvaNode.height() - TITLE_PADDING * 2,
+  const getFieldHeight = (field: string, nodeHeight: number) => {
+    switch (field) {
+      case 'title':
+        return Math.max(24, Math.min(32, nodeHeight * 0.15)); // Min 24px, max 32px, or 15% of card height
+      case 'content':
+        // For content, we need to account for title, date, and other elements taking up space
+        // Leave room at the bottom and account for content starting below title/date area
+        return Math.max(60, nodeHeight - 80); // Min 60px for content, subtract 80px for header area + bottom margin
+      case 'date':
+      case 'key':
+      case 'tags':
+        return 20;
+      default:
+        return 24;
+    }
   };
-  console.log('Card Overlay Position:', calculatedPos, 'Field:', editingField);
+
+  const getFieldYPosition = (field: string, nodeY: number) => {
+    switch (field) {
+      case 'title':
+        return nodeY + TITLE_PADDING;
+      case 'content':
+        // Content starts below title/date area (approximately 35-40px down)
+        return nodeY + CONTENT_PADDING_TOP;
+      case 'date':
+      case 'key':
+      case 'tags':
+        return nodeY + TITLE_PADDING;
+      default:
+        return nodeY + TITLE_PADDING;
+    }
+  };
+
+  const rawPos = {
+    x: stageRect.left + nodeAbsolutePosition.x + TITLE_PADDING,
+    y: stageRect.top + getFieldYPosition(editingField || '', nodeAbsolutePosition.y),
+    width: editingKonvaNode.width() - TITLE_PADDING * 2,
+    height: getFieldHeight(editingField || '', editingKonvaNode.height()),
+  };
+
+  // Ensure the overlay stays within viewport bounds
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const margin = 10; // Minimum margin from viewport edges
+
+  const calculatedPos = {
+    x: Math.max(margin, Math.min(rawPos.x, viewportWidth - rawPos.width - margin)),
+    y: Math.max(margin, Math.min(rawPos.y, viewportHeight - rawPos.height - margin)),
+    width: Math.min(rawPos.width, viewportWidth - 2 * margin),
+    height: Math.min(rawPos.height, viewportHeight - 2 * margin),
+  };
+
+  console.log('Card Overlay Position:', { raw: rawPos, clamped: calculatedPos }, 'Field:', editingField);
   return calculatedPos;
 };

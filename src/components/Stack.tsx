@@ -18,6 +18,7 @@ interface StackProps {
   onColorPickerOpen: (cardId: string, x: number, y: number) => void;
   onCardDelete: (cardId: string, x: number, y: number) => void;
   onCardBreakOut: (cardId: string) => void;
+  onCardHover?: (cardId: string | null) => void;
   editingCardId?: string | null;
   editingField?: 'title' | 'content' | 'date' | 'key' | 'tags' | 'stack-title' | null;
   editingStackId?: string | null;
@@ -39,11 +40,16 @@ const Stack = React.memo(({
   onColorPickerOpen,
   onCardDelete,
   onCardBreakOut,
+  onCardHover,
   editingCardId,
   editingField,
   editingStackId,
   highlightedCardIds,
 }: StackProps) => {
+
+  // Disable dragging when editing content, or when editing any card in this stack
+  const stackCardIds = stack.cards.map(c => c.id);
+  const isDraggingDisabled = editingCardId && editingField === 'content' && stackCardIds.includes(editingCardId);
   console.log('Stack received onEditStart:', onEditStart);
 
 
@@ -53,6 +59,20 @@ const Stack = React.memo(({
 
 
   const handleDragStart = (e: Konva.KonvaEventObject<DragEvent>) => {
+    console.log('Stack handleDragStart called', {
+      detail: e.evt?.detail,
+      type: e.evt?.type,
+      target: e.target.name(),
+      isDraggingDisabled
+    });
+
+    // Don't start dragging if disabled or triggered by double-click
+    if (isDraggingDisabled || (e.evt && e.evt.detail === 2)) {
+      console.log('Preventing drag - disabled:', isDraggingDisabled, 'double-click:', e.evt?.detail === 2);
+      e.target.stopDrag();
+      return;
+    }
+
     e.target.moveToTop();
   };
 
@@ -82,6 +102,46 @@ const Stack = React.memo(({
   };
 
   const handleWheel = (e: Konva.KonvaEventObject<WheelEvent>) => {
+    // Check if event was already handled by a child component (like content scrolling)
+    if (e.evt.defaultPrevented) {
+      return; // Content area already handled this event
+    }
+
+    // Get the mouse position relative to the stack
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    const pointerPos = stage.getPointerPosition();
+    if (!pointerPos) return;
+
+    // Convert screen coordinates to stack-relative coordinates
+    const stackGroup = e.target.findAncestor('Group') || e.target;
+    const stackTransform = stackGroup.getAbsoluteTransform().copy();
+    stackTransform.invert();
+    const localPos = stackTransform.point(pointerPos);
+
+    // Calculate the header area bounds for the top card
+    const topCard = stack.cards[stack.cards.length - 1]; // Last card is the top visible card
+    const baseCardWidth = topCard.width || CARD_WIDTH;
+    const baseCardHeight = topCard.height || CARD_HEIGHT;
+    const borderPadding = 10;
+    const headerTextSpace = stack.cards.length > 1 ? 8 : 0;
+
+    // Calculate the content area start Y position (where scrollable content begins)
+    const keyFieldY = topCard.date ? 56 : 40; // Same as key icon position in Notecard
+    const keyFieldHeight = 16; // Height needed for key field
+    const contentStartY = keyFieldY + keyFieldHeight + 8 + headerTextSpace + borderPadding; // 8px padding after key field
+
+    // Only handle wheel events if the mouse is NOT over the content area
+    const isOverContentArea = localPos.y >= contentStartY &&
+                              localPos.y <= (baseCardHeight + headerTextSpace + borderPadding) &&
+                              localPos.x >= borderPadding &&
+                              localPos.x <= (baseCardWidth + borderPadding);
+
+    if (isOverContentArea) {
+      return; // Don't handle stack scrolling when over content area
+    }
+
     e.evt.preventDefault(); // Prevent page scrolling
     onWheel(stack.id, e.evt.deltaY);
   };
@@ -111,7 +171,7 @@ const Stack = React.memo(({
       id={stack.id} // Added id for identification
       x={stack.x}
       y={stack.y}
-      draggable
+      draggable={!isDraggingDisabled} // Disable dragging when editing content
       onDragStart={handleDragStart}
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
@@ -209,21 +269,24 @@ const Stack = React.memo(({
         const yOffset = borderPadding + headerTextSpace + index * HEADER_OFFSET + (cardHeight * (1 - scale)) / 2;
         
         return (
-          <Group 
-            key={card.id} 
+          <Group
+            key={card.id}
             x={xOffset}
             y={yOffset}
             scaleX={scale}
             scaleY={scale}
+            onMouseEnter={() => onCardHover?.(card.id)}
+            onMouseLeave={() => onCardHover?.(null)}
           >
-            <Notecard 
-              card={card} 
+            <Notecard
+              card={card}
               onEditStart={onEditStart}
               onColorPickerOpen={isTopCard ? onColorPickerOpen : undefined} // Only top card can open color picker
               onDelete={isTopCard ? onCardDelete : undefined} // Only top card can be deleted
               onBreakOut={isTopCard && stack.cards.length > 1 ? onCardBreakOut : undefined} // Only top card in multi-card stacks can be broken out
               isEditing={editingCardId === card.id && editingField === 'content'} // Pass editing state
               isHighlighted={highlightedCardIds?.has(card.id) || false} // Pass highlighting state
+              renderContent={isTopCard} // Only render content for the top visible card
             />
           </Group>
         );
@@ -247,10 +310,13 @@ const Stack = React.memo(({
           e.cancelBubble = true;
           const stage = e.target.getStage();
           if (!stage) return;
-          
+
+          // Dispatch resize start event
+          document.dispatchEvent(new CustomEvent('cardresizestart'));
+
           const startHeight = baseCardHeight;
           const startY = e.evt.clientY;
-          
+
           const handleMouseMove = (e: any) => {
             const deltaY = e.evt.clientY - startY;
             const newHeight = Math.max(80, startHeight + deltaY); // Minimum height 80px
@@ -259,13 +325,15 @@ const Stack = React.memo(({
               handleCardResize(card.id, card.width || baseCardWidth, newHeight);
             });
           };
-          
+
           const handleMouseUp = () => {
             stage.off('mousemove', handleMouseMove);
             stage.off('mouseup', handleMouseUp);
             document.body.style.cursor = 'default';
+            // Dispatch resize end event
+            document.dispatchEvent(new CustomEvent('cardresizeend'));
           };
-          
+
           stage.on('mousemove', handleMouseMove);
           stage.on('mouseup', handleMouseUp);
           document.body.style.cursor = 's-resize';
@@ -289,10 +357,13 @@ const Stack = React.memo(({
           e.cancelBubble = true;
           const stage = e.target.getStage();
           if (!stage) return;
-          
+
+          // Dispatch resize start event
+          document.dispatchEvent(new CustomEvent('cardresizestart'));
+
           const startWidth = baseCardWidth;
           const startX = e.evt.clientX;
-          
+
           const handleMouseMove = (e: any) => {
             const deltaX = e.evt.clientX - startX;
             const newWidth = Math.max(100, startWidth + deltaX); // Minimum width 100px
@@ -301,13 +372,15 @@ const Stack = React.memo(({
               handleCardResize(card.id, newWidth, card.height || baseCardHeight);
             });
           };
-          
+
           const handleMouseUp = () => {
             stage.off('mousemove', handleMouseMove);
             stage.off('mouseup', handleMouseUp);
             document.body.style.cursor = 'default';
+            // Dispatch resize end event
+            document.dispatchEvent(new CustomEvent('cardresizeend'));
           };
-          
+
           stage.on('mousemove', handleMouseMove);
           stage.on('mouseup', handleMouseUp);
           document.body.style.cursor = 'e-resize';
@@ -331,12 +404,15 @@ const Stack = React.memo(({
           e.cancelBubble = true;
           const stage = e.target.getStage();
           if (!stage) return;
-          
+
+          // Dispatch resize start event
+          document.dispatchEvent(new CustomEvent('cardresizestart'));
+
           const startWidth = baseCardWidth;
           const startHeight = baseCardHeight;
           const startX = e.evt.clientX;
           const startY = e.evt.clientY;
-          
+
           const handleMouseMove = (e: any) => {
             const deltaX = e.evt.clientX - startX;
             const deltaY = e.evt.clientY - startY;
@@ -347,13 +423,15 @@ const Stack = React.memo(({
               handleCardResize(card.id, newWidth, newHeight);
             });
           };
-          
+
           const handleMouseUp = () => {
             stage.off('mousemove', handleMouseMove);
             stage.off('mouseup', handleMouseUp);
             document.body.style.cursor = 'default';
+            // Dispatch resize end event
+            document.dispatchEvent(new CustomEvent('cardresizeend'));
           };
-          
+
           stage.on('mousemove', handleMouseMove);
           stage.on('mouseup', handleMouseUp);
           document.body.style.cursor = 'se-resize';

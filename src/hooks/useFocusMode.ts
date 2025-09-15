@@ -141,7 +141,7 @@ export const useFocusMode = (
     console.log('================================');
     
     return { zoom: scale, translate: { x: finalTranslateX, y: finalTranslateY } };
-  }, [getFilteredStacks]);
+  }, [getFilteredStacks, sidebarWidth]);
 
   // Zoom handlers that update appropriate settings based on mode
   const handleZoomIn = useCallback(() => {
@@ -234,7 +234,7 @@ export const useFocusMode = (
       const { zoom, translate } = calculateFocusTransform();
       setCanvasZoom(zoom);
       setCanvasTranslate(translate);
-      
+
       // Update focus view settings with new calculated values
       setFocusViewSettings({
         scale: zoom,
@@ -243,6 +243,45 @@ export const useFocusMode = (
       });
     }
   }, [searchFilters, stacks, isFocusModeEnabled, calculateFocusTransform]);
+
+  // Auto-update focus transform when viewport resizes and focus mode is enabled
+  useEffect(() => {
+    const handleResize = () => {
+      if (isFocusModeEnabled) {
+        console.log('Viewport resized, recalculating focus transform');
+        const { zoom, translate } = calculateFocusTransform();
+        setCanvasZoom(zoom);
+        setCanvasTranslate(translate);
+
+        // Update focus view settings with new calculated values
+        setFocusViewSettings({
+          scale: zoom,
+          x: translate.x,
+          y: translate.y
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isFocusModeEnabled, calculateFocusTransform]);
+
+  // Auto-update focus transform when sidebar width changes and focus mode is enabled
+  useEffect(() => {
+    if (isFocusModeEnabled) {
+      console.log('Sidebar width changed, recalculating focus transform');
+      const { zoom, translate } = calculateFocusTransform();
+      setCanvasZoom(zoom);
+      setCanvasTranslate(translate);
+
+      // Update focus view settings with new calculated values
+      setFocusViewSettings({
+        scale: zoom,
+        x: translate.x,
+        y: translate.y
+      });
+    }
+  }, [sidebarWidth, isFocusModeEnabled, calculateFocusTransform]);
 
   // Handle enabling focus mode after demo is loaded
   useEffect(() => {

@@ -17,12 +17,12 @@ interface MarkdownRendererProps {
   onEditStart?: (cardId: string, field: 'content') => void;
 }
 
-const MarkdownRenderer = ({ 
-  content, 
-  x, 
-  y, 
-  width, 
-  height, 
+const MarkdownRenderer = ({
+  content,
+  x,
+  y,
+  width,
+  height,
   scale = 1,
   backgroundColor = '#ffffff',
   cardPadding = 10,
@@ -92,7 +92,6 @@ const MarkdownRenderer = ({
     margin: '0',
     boxSizing: 'border-box',
     overflow: 'auto', // Enable scrolling
-    zIndex: 100, // Below editing overlays but above canvas
     fontSize: `${14 * scale}px`,
     fontFamily: FONT_FAMILY,
     lineHeight: '1.4',
@@ -138,13 +137,18 @@ const MarkdownRenderer = ({
       <div 
         style={{
           ...overlayStyle,
-          // Enable pointer events for scrollable content
-          pointerEvents: hasScrollableContent ? 'auto' : 'none',
+          // Enable pointer events for interaction
+          pointerEvents: 'auto',
+        }}
+        onWheel={handleWheel}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onDoubleClick={() => {
+          if (onEditStart) {
+            onEditStart(card.id, 'content');
+          }
         }}
         {...(hasScrollableContent && {
-          onWheel: handleWheel,
-          onMouseEnter: handleMouseEnter,
-          onMouseLeave: handleMouseLeave,
           onMouseMove: (e) => {
             // Check if mouse is over the connection handle area and update cursor accordingly
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -206,11 +210,6 @@ const MarkdownRenderer = ({
               setTimeout(() => {
                 target.style.pointerEvents = originalPointerEvents;
               }, 50);
-            }
-          },
-          onDoubleClick: () => {
-            if (onEditStart) {
-              onEditStart(card.id, 'content');
             }
           },
         })}
